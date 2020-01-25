@@ -1,0 +1,39 @@
+[submodule "lib/intrade-bar-api-cpp"]
+	path = lib/intrade-bar-api-cpp
+	url = https://github.com/NewYaroslav/intrade-bar-api-cpp.git
+[submodule "lib/bo-payout-model"]
+	path = lib/bo-payout-model
+	url = https://github.com/NewYaroslav/bo-payout-model.git
+[submodule "lib/xtime_cpp"]
+	path = lib/xtime_cpp
+	url = https://github.com/NewYaroslav/xtime_cpp.git
+[submodule "lib/xquotes_history"]
+	path = lib/xquotes_history
+	url = https://github.com/NewYaroslav/xquotes_history.git
+[submodule "lib/gzip-hpp"]
+	path = lib/gzip-hpp
+	url = https://github.com/NewYaroslav/gzip-hpp.git
+[submodule "lib/openssl_win64"]
+	path = lib/openssl_win64
+	url = https://github.com/NewYaroslav/openssl_win64.git
+[submodule "lib/json"]
+	path = lib/json
+	url = https://github.com/nlohmann/json.git
+[submodule "lib/curl-7.60.0-win64-mingw"]
+	path = lib/curl-7.60.0-win64-mingw
+	url = https://github.com/NewYaroslav/curl-7.60.0-win64-mingw.git
+[submodule "lib/banana-filesystem-cpp"]
+	path = lib/banana-filesystem-cpp
+	url = https://github.com/NewYaroslav/banana-filesystem-cpp.git
+[submodule "lib/zstd"]
+	path = lib/zstd
+	url = https://github.com/facebook/zstd.git
+[submodule "lib/Simple-WebSocket-Server"]
+	path = lib/Simple-WebSocket-Server
+	url = https://gitlab.com/eidheim/Simple-WebSocket-Server.git
+[submodule "lib/forexprostools-cpp-api"]
+	path = lib/forexprostools-cpp-api
+	url = https://github.com/NewYaroslav/forexprostools-cpp-api.git
+[submodule "lib/zlib"]
+	path = lib/zlib
+	url = https://github.com/madler/zlib.git
