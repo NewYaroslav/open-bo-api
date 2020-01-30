@@ -83,6 +83,8 @@
 		</Compiler>
 		<Unit filename="../../include/open-bo-api-command-line-tools.hpp" />
 		<Unit filename="../../include/open-bo-api-indicators.hpp" />
+		<Unit filename="../../include/open-bo-api-news.hpp" />
+		<Unit filename="../../include/open-bo-api-settings.hpp" />
 		<Unit filename="../../include/open-bo-api.hpp" />
 		<Unit filename="../../lib/Simple-WebSocket-Server/client_ws.hpp" />
 		<Unit filename="../../lib/Simple-WebSocket-Server/client_wss.hpp" />
@@ -101,9 +103,11 @@
 		<Unit filename="../../lib/intrade-bar-api-cpp/include/intrade-bar-logger.hpp" />
 		<Unit filename="../../lib/intrade-bar-api-cpp/include/intrade-bar-websocket-api.hpp" />
 		<Unit filename="../../lib/xtechnical_analysis/include/xtechnical_common.hpp" />
+		<Unit filename="../../lib/xtechnical_analysis/include/xtechnical_correlation.hpp" />
 		<Unit filename="../../lib/xtechnical_analysis/include/xtechnical_indicators.hpp" />
 		<Unit filename="../../lib/xtechnical_analysis/include/xtechnical_normalization.hpp" />
 		<Unit filename="../../lib/xtechnical_analysis/include/xtechnical_regression_analysis.hpp" />
+		<Unit filename="../../lib/xtechnical_analysis/include/xtechnical_statistics.hpp" />
 		<Unit filename="../../lib/xtime_cpp/src/xtime.cpp" />
 		<Unit filename="../../lib/xtime_cpp/src/xtime.hpp" />
 		<Unit filename="../../lib/zlib/adler32.c">

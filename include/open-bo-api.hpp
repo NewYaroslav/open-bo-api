@@ -24,21 +24,27 @@
 #ifndef OPEN_BO_API_HPP_INCLUDED
 #define OPEN_BO_API_HPP_INCLUDED
 
+
+#include "open-bo-api-news.hpp"
+#include "open-bo-api-settings.hpp"
 #include "open-bo-api-indicators.hpp"
 #include "open-bo-api-command-line-tools.hpp"
 
 /* брокер intrade.bar */
+#include "intrade-bar-common.hpp"
 #include "intrade-bar-api.hpp"
 #include "intrade-bar-payout-model.hpp"
-
-#include "ForexprostoolsApi.hpp"
 
 namespace open_bo_api {
     using json = nlohmann::json;
     using Candle = xquotes_common::Candle;
+    using Logger = intrade_bar::Logger;
 
     class IntradeBar {
     public:
+        using Api = intrade_bar::IntradeBarApi;
+        using BetStatus = intrade_bar::IntradeBarHttpApi::BetStatus;
+        using ErrorType = intrade_bar_common::ErrorType;
 
         IntradeBar() {}
 
@@ -108,147 +114,6 @@ namespace open_bo_api {
                 winrate,
                 attenuator);
         }
-    };
-
-    class News {
-    private:
-        static inline std::recursive_mutex list_news_mutex;
-        static inline ForexprostoolsApiEasy::NewsList news_data;
-        static inline std::vector<ForexprostoolsApiEasy::News> list_news;
-    public:
-
-
-        /** \brief Обновить список новостей
-         *
-         * \param timestamp Метка времени
-         * \return Вернет true, если новости были загружены
-         */
-        inline static bool update(
-                const xtime::timestamp_t timestamp,
-                const std::string &sert_file = std::string("curl-ca-bundle.crt")) {
-            const xtime::timestamp_t start_timestamp = timestamp - xtime::SECONDS_IN_DAY;
-            const xtime::timestamp_t stop_timestamp = timestamp - xtime::SECONDS_IN_DAY;
-            ForexprostoolsApi api(sert_file);
-            for(uint32_t attempt = 0; attempt < 5; ++attempt) {
-                std::lock_guard<std::recursive_mutex> lock(list_news_mutex);
-                list_news.clear();
-                int err = api.download_all_news(
-                    start_timestamp,
-                    stop_timestamp,
-                    list_news);
-                if(err == ForexprostoolsApi::OK) {
-                    std::cout << "download: " << list_news.size() << std::endl;
-                    news_data = ForexprostoolsApiEasy::NewsList(list_news);
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        /** \brief Обновить список новостей
-         *
-         * \param timestamp Метка времени
-         */
-        inline static void async_update(
-                const xtime::timestamp_t timestamp,
-                const std::string &sert_file = std::string("curl-ca-bundle.crt")) {
-            /* запускаем асинхронное открытие сделки */
-            std::thread news_thread = std::thread([=]{
-                const xtime::timestamp_t start_timestamp = timestamp - xtime::SECONDS_IN_DAY;
-                const xtime::timestamp_t stop_timestamp = timestamp + xtime::SECONDS_IN_DAY;
-                ForexprostoolsApi api(sert_file);
-                for(uint32_t attempt = 0; attempt < 5; ++attempt) {
-                    std::lock_guard<std::recursive_mutex> lock(list_news_mutex);
-                    list_news.clear();
-                    int err = api.download_all_news(
-                        start_timestamp,
-                        stop_timestamp,
-                        list_news);
-                    if(err == ForexprostoolsApi::OK) {
-                        news_data = ForexprostoolsApiEasy::NewsList(list_news);
-                        break;
-                    }
-                }
-            });
-            news_thread.detach();
-        }
-
-        /** \brief Проверить новости в заданных пределах времени
-         *
-         * \param is_news Имеет состояние true, если в заданных пределах времени есть новость, подходящая по указанным параметрам
-         * \param symbol_name имя валютной пары
-         * \param timestamp Текущее время (Метка времени)
-         * \param indent_timestamp_past Максимальный отступ до метки времени
-         * \param indent_timestamp_future Максимальный отступ после метки времени
-         * \param is_only_select Использовать только выбранные уровни силы новости.
-         * Если есть новость с другим уровнем силы, функция поместит в state NEWS_FOUND.
-         * \param is_low Использовать слабые новости.
-         * \param is_moderate Использовать новости средней силы.
-         * \param is_high Использовать сильные новости.
-         * \return Вернет true, если есть новость, подходящая по указанным параметрам
-         */
-        inline static bool check_news(
-                bool &is_news,
-                const std::string &symbol_name,
-                const xtime::timestamp_t timestamp,
-                const xtime::timestamp_t indent_timestamp_past,
-                const xtime::timestamp_t indent_timestamp_future,
-                const bool is_only_select,
-                const bool is_low,
-                const bool is_moderate,
-                const bool is_high) {
-            is_news = false;
-            /* получаем массив новостей */
-            std::vector<ForexprostoolsApiEasy::News> list_news_data;
-            {
-                std::lock_guard<std::recursive_mutex> lock(list_news_mutex);
-                int err = 0;
-                if((err = news_data.get_news(
-                    timestamp,
-                    indent_timestamp_past,
-                    indent_timestamp_future,
-                    list_news_data)) != ForexprostoolsApiEasy::OK) {
-                    if(list_news.size() == 0) return false;
-                    return true;
-                }
-            }
-
-            /* раскладываем имя валютной пары на составляющие */
-            std::string currency_1, currency_2;
-            int err = ForexprostoolsApiEasy::get_currencies(
-                symbol_name,
-                currency_1,
-                currency_2);
-            if(err != ForexprostoolsApiEasy::OK) return false;
-
-            for(size_t i = 0; i < list_news_data.size(); ++i) {
-                if(list_news_data[i].currency != currency_1 &&
-                    list_news_data[i].currency != currency_2) continue;
-                if(list_news_data[i].level_volatility == ForexprostoolsApiEasy::LOW) {
-                    if(is_low) is_news = true;
-                    else if(is_only_select) {
-                        is_news = false;
-                        return true;
-                    }
-                } else
-                if(list_news_data[i].level_volatility == ForexprostoolsApiEasy::MODERATE) {
-                    if(is_moderate) is_news = true;
-                    else if(is_only_select) {
-                        is_news = false;
-                        return true;
-                    }
-                } else
-                if(list_news_data[i].level_volatility == ForexprostoolsApiEasy::HIGH) {
-                    if(is_high) is_news = true;
-                    else if(is_only_select) {
-                        is_news = false;
-                        return true;
-                    }
-                }
-            }
-            return true;
-        }
-
     };
 };
 
