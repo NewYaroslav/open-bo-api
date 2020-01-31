@@ -27,7 +27,7 @@
 
 using json = nlohmann::json;
 /* тип индикатора RSI, этот индиатор использует внутри себя SMA и тип данных double */
-using RSI_TYPE = xtechnical_indicators::RSI<double, xtechnical_indicators::SMA<double>>;
+using RSI_TYPE = xtechnical_indicators::RSI<double,xtechnical_indicators::SMA<double>>;
 
 /* класс с настройками */
 open_bo_api::Settings settings;
@@ -94,6 +94,10 @@ int main(int argc, char **argv) {
     /* инициализируем список новостей */
     open_bo_api::News::async_update(xtime::get_timestamp(), settings.news_sert_file);
 
+    /* создаем мост между метатрейдером и программой */
+    open_bo_api::MtBridge MetaTrader(settings.mt_bridge_port);
+    MetaTrader.wait();
+
     /* получаем в отдельном потоке тики котировок и исторические данные брокера */
     open_bo_api::IntradeBar::Api intrade_bar_api(
                     settings.intrade_bar_number_bars,
@@ -108,22 +112,27 @@ int main(int argc, char **argv) {
         /* проходим в цикле по всем символа брокера Intradebar */
         for(size_t symbol = 0; symbol < intrade_bar_symbols.size(); ++symbol) {
             std::string &symbol_name = intrade_bar_symbols[symbol];
+
             /* получаем бар */
             open_bo_api::Candle candle = open_bo_api::IntradeBar::Api::get_candle(symbol_name, candles);
+            /* получаем бар из MetaTrader */
+            open_bo_api::Candle candle_mt4 = MetaTrader.get_timestamp_candle(symbol_name, timestamp);
+
             switch(event) {
             /* получено событие "ПОЛУЧЕНЫ ИСТОРИЧЕСКИЕ ДАННЫЕ" */
             case open_bo_api::IntradeBar::Api::EventType::HISTORICAL_DATA_RECEIVED:
                 is_block_open_bo = false;
                 is_block_open_bo_one_deal = false;
                 /* проверяем бар на наличие данных */
-                if(!open_bo_api::IntradeBar::Api::check_candle(candle)) {
+                if(!open_bo_api::IntradeBar::Api::check_candle(candle_mt4)) {
                     /* данных нет, очищаем внутреннее состояние индикатора */
                     rsi_indicators[symbol_name][PERIOD_RSI].clear();
+                    std::cerr << "check candle error" << std::endl;
                     break;
                 }
                 /* обновляем состояние всех индикаторов*/
                 for(auto &item : rsi_indicators[symbol_name]) {
-                    item.second.update(candle.close);
+                    item.second.update(candle_mt4.close);
                 }
                 break;
             /* получено событие "НОВЫЙ ТИК" */
@@ -185,11 +194,14 @@ int main(int argc, char **argv) {
                     }
 
                     /* проверяем бар на наличие данных */
-                    if(!open_bo_api::IntradeBar::Api::check_candle(candle)) break;
+                    if(!open_bo_api::IntradeBar::Api::check_candle(candle_mt4)) {
+                        std::cerr << "check candle error" << std::endl;
+                        break;
+                    }
 
                     /* обновляем состояние индикатора */
                     double rsi_out = 50;
-                    int err = rsi_indicators[symbol_name][PERIOD_RSI].test(candle.close, rsi_out);
+                    int err = rsi_indicators[symbol_name][PERIOD_RSI].test(candle_mt4.close, rsi_out);
                     if(err != xtechnical_common::OK) break;
 
                     /* реализуем простую стратегию */

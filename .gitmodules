@@ -40,3 +40,6 @@
 [submodule "lib/xtechnical_analysis"]
 	path = lib/xtechnical_analysis
 	url = https://github.com/NewYaroslav/xtechnical_analysis.git
+[submodule "lib/mt-bridge"]
+	path = lib/mt-bridge
+	url = https://github.com/NewYaroslav/mt-bridge.git

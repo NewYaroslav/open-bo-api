@@ -25,6 +25,8 @@
 #define OPEN_BO_API_NEWS_HPP_INCLUDED
 
 #include "ForexprostoolsApi.hpp"
+#include <mutex>
+#include <atomic>
 
 namespace open_bo_api {
 

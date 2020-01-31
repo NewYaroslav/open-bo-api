@@ -24,11 +24,19 @@
 #ifndef OPEN_BO_API_SETTINGS_HPP_INCLUDED
 #define OPEN_BO_API_SETTINGS_HPP_INCLUDED
 
+#include <iostream>
+#include <string>
+#include <cstdlib>
+#include <nlohmann/json.hpp>
+
 namespace open_bo_api {
     using json = nlohmann::json;
 
     class Settings {
+    private:
+        bool is_error = false;
     public:
+        std::string environmental_variable;
         std::string json_file_name; /**< Имя JSON файла */
         std::string news_sert_file = "curl-ca-bundle.crt";
         std::string intrade_bar_sert_file = "curl-ca-bundle.crt";
@@ -42,11 +50,19 @@ namespace open_bo_api {
         uint32_t intrade_bar_number_bars = 100; /**< количество баров м1 для инициализации исторических данных */
         bool is_intrade_bar_demo_account = true;
         bool is_intrade_bar_rub_currency = true;
+        uint32_t mt_bridge_port = 5555; /**< Порт "Моста" для подключения к MetaTrader4 */
 
         Settings() {};
 
         void init(json &j) {
             try {
+                if(j["environmental_variable"] != nullptr) {
+                    environmental_variable = j["environmental_variable"];
+                }
+                //
+                if(j["mt_bridge"]["port"] != nullptr) {
+                    mt_bridge_port = j["mt_bridge"]["port"];
+                }
                 //
                 if(j["news"]["sert_file"] != nullptr) {
                     news_sert_file = j["news"]["sert_file"];
@@ -88,13 +104,46 @@ namespace open_bo_api {
                 }
                 //
             }
+            catch (json::parse_error &e) {
+                std::cerr << "open_bo_api::Settings, json parser error: " << std::string(e.what()) << std::endl;
+                is_error = true;
+                return;
+            }
+            catch (std::exception e) {
+                std::cerr << "open_bo_api::Settings, json parser error: " << std::string(e.what()) << std::endl;
+                is_error = true;
+                return;
+            }
             catch(...) {
-
+                is_error = true;
+                return;
+            }
+            if(environmental_variable.size() != 0) {
+                const char* env_ptr = std::getenv(environmental_variable.c_str());
+                if(env_ptr == NULL) {
+                    std::cerr << "open_bo_api::Settings, error, no environment variable!" << std::endl;
+                    is_error = true;
+                    return;
+                }
+                news_sert_file = std::string(env_ptr) + "\\" + news_sert_file;
+                intrade_bar_sert_file = std::string(env_ptr) + "\\" + intrade_bar_sert_file;
+                intrade_bar_cookie_file = std::string(env_ptr) + "\\" + intrade_bar_cookie_file;
+                intrade_bar_bets_log_file = std::string(env_ptr) + "\\" + intrade_bar_bets_log_file;
+                intrade_bar_work_log_file = std::string(env_ptr) + "\\" + intrade_bar_work_log_file;
+                intrade_bar_websocket_log_file = std::string(env_ptr) + "\\" + intrade_bar_websocket_log_file;
+                trading_robot_work_log_file = std::string(env_ptr) + "\\" + trading_robot_work_log_file;
             }
         }
 
         Settings(json &j) {
             init(j);
+        }
+
+        /** \brief Проверить наличие ошибки
+         * \return Вернет true, если есть ошибка
+         */
+        inline bool check_error() {
+            return is_error;
         }
     };
 }

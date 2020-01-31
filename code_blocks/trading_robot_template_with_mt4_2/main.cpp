@@ -27,7 +27,7 @@
 
 using json = nlohmann::json;
 /* тип индикатора RSI, этот индиатор использует внутри себя SMA и тип данных double */
-using RSI_TYPE = xtechnical_indicators::RSI<double, xtechnical_indicators::SMA<double>>;
+using RSI_TYPE = xtechnical_indicators::RSI<double,xtechnical_indicators::SMA<double>>;
 
 /* класс с настройками */
 open_bo_api::Settings settings;
@@ -94,11 +94,25 @@ int main(int argc, char **argv) {
     /* инициализируем список новостей */
     open_bo_api::News::async_update(xtime::get_timestamp(), settings.news_sert_file);
 
-    /* получаем в отдельном потоке тики котировок и исторические данные брокера */
+    /* API для работы с брокером intrade.bar */
     open_bo_api::IntradeBar::Api intrade_bar_api(
-                    settings.intrade_bar_number_bars,
+            settings.intrade_bar_number_bars,
+            nullptr,
+            false,
+            settings.intrade_bar_sert_file,
+            settings.intrade_bar_cookie_file,
+            settings.intrade_bar_bets_log_file,
+            settings.intrade_bar_work_log_file,
+            settings.intrade_bar_websocket_log_file);
+
+    /* создаем мост между метатрейдером и программой,
+     * получаем в отдельном потоке тики котировок и исторические данные брокера
+     */
+    open_bo_api::MtBridge MetaTrader(
+            settings.mt_bridge_port,
+            settings.intrade_bar_number_bars,
                     [&](const std::map<std::string, open_bo_api::Candle> &candles,
-                        const open_bo_api::IntradeBar::Api::EventType event,
+                        const open_bo_api::MtBridge::EventType event,
                         const xtime::timestamp_t timestamp) {
         /* вспомогательные переменные */
         const uint32_t second = xtime::get_second_minute(timestamp); // секунда минуты
@@ -108,17 +122,20 @@ int main(int argc, char **argv) {
         /* проходим в цикле по всем символа брокера Intradebar */
         for(size_t symbol = 0; symbol < intrade_bar_symbols.size(); ++symbol) {
             std::string &symbol_name = intrade_bar_symbols[symbol];
+
             /* получаем бар */
             open_bo_api::Candle candle = open_bo_api::IntradeBar::Api::get_candle(symbol_name, candles);
+
             switch(event) {
             /* получено событие "ПОЛУЧЕНЫ ИСТОРИЧЕСКИЕ ДАННЫЕ" */
-            case open_bo_api::IntradeBar::Api::EventType::HISTORICAL_DATA_RECEIVED:
+            case open_bo_api::MtBridge::EventType::HISTORICAL_DATA_RECEIVED:
                 is_block_open_bo = false;
                 is_block_open_bo_one_deal = false;
                 /* проверяем бар на наличие данных */
                 if(!open_bo_api::IntradeBar::Api::check_candle(candle)) {
                     /* данных нет, очищаем внутреннее состояние индикатора */
                     rsi_indicators[symbol_name][PERIOD_RSI].clear();
+                    std::cerr << "check candle error" << std::endl;
                     break;
                 }
                 /* обновляем состояние всех индикаторов*/
@@ -127,7 +144,7 @@ int main(int argc, char **argv) {
                 }
                 break;
             /* получено событие "НОВЫЙ ТИК" */
-            case open_bo_api::IntradeBar::Api::EventType::NEW_TICK:
+            case open_bo_api::MtBridge::EventType::NEW_TICK:
                 /* получаем метку времени начала бара */
                 const xtime::timestamp_t bar_opening_timestamp = second == 0 ?
                         timestamp - xtime::SECONDS_IN_MINUTE :
@@ -185,7 +202,10 @@ int main(int argc, char **argv) {
                     }
 
                     /* проверяем бар на наличие данных */
-                    if(!open_bo_api::IntradeBar::Api::check_candle(candle)) break;
+                    if(!open_bo_api::IntradeBar::Api::check_candle(candle)) {
+                        std::cerr << "check candle error" << std::endl;
+                        break;
+                    }
 
                     /* обновляем состояние индикатора */
                     double rsi_out = 50;
@@ -335,16 +355,10 @@ int main(int argc, char **argv) {
         } // for symbol
 
         /* загружаем новости */
-        if(event == open_bo_api::IntradeBar::Api::EventType::NEW_TICK && second == 0) {
+        if(event == open_bo_api::MtBridge::EventType::NEW_TICK && second == 0) {
             open_bo_api::News::async_update(timestamp);
         }
-    },
-    false,
-    settings.intrade_bar_sert_file,
-    settings.intrade_bar_cookie_file,
-    settings.intrade_bar_bets_log_file,
-    settings.intrade_bar_work_log_file,
-    settings.intrade_bar_websocket_log_file);
+    });
 
     /* подключаемся к брокеру, чтобы можно было совершать сделки */
     int err_connect = intrade_bar_api.connect(
