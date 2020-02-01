@@ -49,6 +49,107 @@ namespace open_bo_api {
         }
     }
 
+    /** \brief Очистить состояние индикаторов
+     *
+     * \param symbols Массивы символов
+     * \param parameters Массивы параметров
+     * \param indicators Массив индикаторов
+     */
+    template<class SYMBOLS_TYPE, class PARAMETERS_TYPE, class INDICATORS_TYPE>
+    void clear_indicators(
+            const SYMBOLS_TYPE &symbols,
+            const PARAMETERS_TYPE &parameters,
+            INDICATORS_TYPE &indicators) {
+        for(uint32_t symbol = 0; symbol < symbols.size(); ++symbol) {
+            for(uint32_t parameter = 0;
+                parameter < parameters.size();
+                ++parameter) {
+                indicators[symbols[symbol]][parameters[parameter]].clear();
+            }
+        }
+    }
+
+    /** \brief Обновить состояние индикаторов
+     *
+     * \param input Массив входящих данных
+     * \param symbols Массивы символов
+     * \param parameters Массивы параметров
+     * \param indicators Массив индикаторов
+     */
+    template<class INPUT_TYPE,
+            class SYMBOLS_TYPE,
+            class PARAMETERS_TYPE,
+            class INDICATORS_TYPE>
+    void update_indicators(
+            const INPUT_TYPE &input,
+            const SYMBOLS_TYPE &symbols,
+            const PARAMETERS_TYPE &parameters,
+            INDICATORS_TYPE &indicators) {
+        for(uint32_t symbol = 0; symbol < symbols.size(); ++symbol) {
+            for(uint32_t parameter = 0;
+                parameter < parameters.size();
+                ++parameter) {
+                indicators[symbols[symbol]][parameters[parameter]].update(input[symbol]);
+            }
+        }
+    }
+
+    /** \brief Обновить состояние индикаторов
+     *
+     * \param input Массив входящих данных
+     * \param output Массив выходящих данных
+     * \param symbols Массивы символов
+     * \param parameters Массивы параметров
+     * \param indicators Массив индикаторов
+     */
+    template<class INPUT_TYPE,
+            class OUTPUT_TYPE,
+            class SYMBOLS_TYPE,
+            class PARAMETERS_TYPE,
+            class INDICATORS_TYPE>
+    void update_indicators(
+            const INPUT_TYPE &input,
+            OUTPUT_TYPE &output,
+            const SYMBOLS_TYPE &symbols,
+            const PARAMETERS_TYPE &parameters,
+            INDICATORS_TYPE &indicators) {
+        for(uint32_t symbol = 0; symbol < symbols.size(); ++symbol) {
+            for(uint32_t parameter = 0;
+                parameter < parameters.size();
+                ++parameter) {
+                indicators[symbols[symbol]][parameters[parameter]].update(input[symbol], output[symbol]);
+            }
+        }
+    }
+
+    /** \brief Протестировать индикаторы
+     *
+     * \param input Массив входящих данных
+     * \param output Массив выходящих данных
+     * \param symbols Массивы символов
+     * \param parameters Массивы параметров
+     * \param indicators Массив индикаторов
+     */
+    template<class INPUT_TYPE,
+            class OUTPUT_TYPE,
+            class SYMBOLS_TYPE,
+            class PARAMETERS_TYPE,
+            class INDICATORS_TYPE>
+    void test_indicators(
+            const INPUT_TYPE &input,
+            OUTPUT_TYPE &output,
+            const SYMBOLS_TYPE &symbols,
+            const PARAMETERS_TYPE &parameters,
+            INDICATORS_TYPE &indicators) {
+        for(uint32_t symbol = 0; symbol < symbols.size(); ++symbol) {
+            for(uint32_t parameter = 0;
+                parameter < parameters.size();
+                ++parameter) {
+                indicators[symbols[symbol]][parameters[parameter]].test(input[symbol], output[symbol]);
+            }
+        }
+    }
+
     /** \brief Инициализировать индикаторы c двумя параметрами
      *
      * \param symbols Массивы символов
@@ -56,11 +157,15 @@ namespace open_bo_api {
      * \param parameters_2 Массивы параметров индикаторов
      * \param indicators Массив индикаторов
      */
-    template<class INDICATOR_TYPE, class SYMBOLS_TYPE, class PARAMETERS_TYPE, class INDICATORS_TYPE>
+    template<class INDICATOR_TYPE,
+            class SYMBOLS_TYPE,
+            class PARAMETERS_TYPE_1,
+            class PARAMETERS_TYPE_2,
+            class INDICATORS_TYPE>
     void init_indicators(
             const SYMBOLS_TYPE &symbols,
-            const PARAMETERS_TYPE &parameters_1,
-            const PARAMETERS_TYPE &parameters_2,
+            const PARAMETERS_TYPE_1 &parameters_1,
+            const PARAMETERS_TYPE_2 &parameters_2,
             INDICATORS_TYPE &indicators) {
         for(uint32_t symbol = 0; symbol < symbols.size(); ++symbol) {
             for(uint32_t parameter_1 = 0;
@@ -71,6 +176,137 @@ namespace open_bo_api {
                     ++parameter_2) {
                     indicators[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]] =
                         INDICATOR_TYPE(parameters_1[parameter_1], parameters_2[parameter_2]);
+                }
+            }
+        }
+    }
+
+    /** \brief Очистить состояние индикаторов с двумя параметрами
+     *
+     * \param symbols Массивы символов
+     * \param parameters_1 Массивы параметров индикаторов
+     * \param parameters_2 Массивы параметров индикаторов
+     * \param indicators Массив индикаторов
+     */
+    template<class SYMBOLS_TYPE,
+            class PARAMETERS_TYPE_1,
+            class PARAMETERS_TYPE_2,
+            class INDICATORS_TYPE>
+    void clear_indicators(
+            const SYMBOLS_TYPE &symbols,
+            const PARAMETERS_TYPE_1 &parameters_1,
+            const PARAMETERS_TYPE_2 &parameters_2,
+            INDICATORS_TYPE &indicators) {
+        for(uint32_t symbol = 0; symbol < symbols.size(); ++symbol) {
+            for(uint32_t parameter_1 = 0;
+                parameter_1 < parameters_1.size();
+                ++parameter_1) {
+                for(uint32_t parameter_2 = 0;
+                    parameter_2 < parameters_2.size();
+                    ++parameter_2) {
+                    indicators[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]].clear();
+                }
+            }
+        }
+    }
+
+    /** \brief Обновить состояние индикаторов с двумя параметрами
+     *
+     * \param input Массив входящих данных
+     * \param symbols Массивы символов
+     * \param parameters_1 Массивы параметров индикаторов
+     * \param parameters_2 Массивы параметров индикаторов
+     * \param indicators Массив индикаторов
+     */
+    template<class INPUT_TYPE,
+            class SYMBOLS_TYPE,
+            class PARAMETERS_TYPE_1,
+            class PARAMETERS_TYPE_2,
+            class INDICATORS_TYPE>
+    void update_indicators(
+            const INPUT_TYPE &input,
+            const SYMBOLS_TYPE &symbols,
+            const PARAMETERS_TYPE_1 &parameters_1,
+            const PARAMETERS_TYPE_2 &parameters_2,
+            INDICATORS_TYPE &indicators) {
+        for(uint32_t symbol = 0; symbol < symbols.size(); ++symbol) {
+            for(uint32_t parameter_1 = 0;
+                parameter_1 < parameters_1.size();
+                ++parameter_1) {
+                for(uint32_t parameter_2 = 0;
+                    parameter_2 < parameters_2.size();
+                    ++parameter_2) {
+                    indicators[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]].update(input[symbol]);
+                }
+            }
+        }
+    }
+
+    /** \brief Обновить состояние индикаторов с двумя параметрами
+     *
+     * \param input Массив входящих данных
+     * \param output Массив выходящих данных
+     * \param symbols Массивы символов
+     * \param parameters_1 Массивы параметров индикаторов
+     * \param parameters_2 Массивы параметров индикаторов
+     * \param indicators Массив индикаторов
+     */
+    template<class INPUT_TYPE,
+            class OUTPUT_TYPE,
+            class SYMBOLS_TYPE,
+            class PARAMETERS_TYPE_1,
+            class PARAMETERS_TYPE_2,
+            class INDICATORS_TYPE>
+    void update_indicators(
+            const INPUT_TYPE &input,
+            OUTPUT_TYPE &output,
+            const SYMBOLS_TYPE &symbols,
+            const PARAMETERS_TYPE_1 &parameters_1,
+            const PARAMETERS_TYPE_2 &parameters_2,
+            INDICATORS_TYPE &indicators) {
+        for(uint32_t symbol = 0; symbol < symbols.size(); ++symbol) {
+            for(uint32_t parameter_1 = 0;
+                parameter_1 < parameters_1.size();
+                ++parameter_1) {
+                for(uint32_t parameter_2 = 0;
+                    parameter_2 < parameters_2.size();
+                    ++parameter_2) {
+                    indicators[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]].update(input[symbol], output[symbol]);
+                }
+            }
+        }
+    }
+
+    /** \brief Протестировать индикатор с двумя параметрами
+     *
+     * \param input Массив входящих данных
+     * \param output Массив выходящих данных
+     * \param symbols Массивы символов
+     * \param parameters_1 Массивы параметров индикаторов
+     * \param parameters_2 Массивы параметров индикаторов
+     * \param indicators Массив индикаторов
+     */
+    template<class INPUT_TYPE,
+            class OUTPUT_TYPE,
+            class SYMBOLS_TYPE,
+            class PARAMETERS_TYPE_1,
+            class PARAMETERS_TYPE_2,
+            class INDICATORS_TYPE>
+    void test_indicators(
+            const INPUT_TYPE &input,
+            OUTPUT_TYPE &output,
+            const SYMBOLS_TYPE &symbols,
+            const PARAMETERS_TYPE_1 &parameters_1,
+            const PARAMETERS_TYPE_2 &parameters_2,
+            INDICATORS_TYPE &indicators) {
+        for(uint32_t symbol = 0; symbol < symbols.size(); ++symbol) {
+            for(uint32_t parameter_1 = 0;
+                parameter_1 < parameters_1.size();
+                ++parameter_1) {
+                for(uint32_t parameter_2 = 0;
+                    parameter_2 < parameters_2.size();
+                    ++parameter_2) {
+                    indicators[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]].test(input[symbol], output[symbol]);
                 }
             }
         }
