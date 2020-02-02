@@ -89,7 +89,7 @@ namespace open_bo_api {
             for(uint32_t parameter = 0;
                 parameter < parameters.size();
                 ++parameter) {
-                indicators[symbols[symbol]][parameters[parameter]].update(input[symbol]);
+                indicators[symbols[symbol]][parameters[parameter]].update(input[symbols[symbol]]);
             }
         }
     }
@@ -117,7 +117,7 @@ namespace open_bo_api {
             for(uint32_t parameter = 0;
                 parameter < parameters.size();
                 ++parameter) {
-                indicators[symbols[symbol]][parameters[parameter]].update(input[symbol], output[symbol]);
+                indicators[symbols[symbol]][parameters[parameter]].update(input[symbols[symbol]], output[symbols[symbol]]);
             }
         }
     }
@@ -145,7 +145,7 @@ namespace open_bo_api {
             for(uint32_t parameter = 0;
                 parameter < parameters.size();
                 ++parameter) {
-                indicators[symbols[symbol]][parameters[parameter]].test(input[symbol], output[symbol]);
+                indicators[symbols[symbol]][parameters[parameter]].test(input[symbols[symbol]], output[symbols[symbol]]);
             }
         }
     }
@@ -236,7 +236,7 @@ namespace open_bo_api {
                 for(uint32_t parameter_2 = 0;
                     parameter_2 < parameters_2.size();
                     ++parameter_2) {
-                    indicators[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]].update(input[symbol]);
+                    indicators[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]].update(input[symbols[symbol]]);
                 }
             }
         }
@@ -271,7 +271,7 @@ namespace open_bo_api {
                 for(uint32_t parameter_2 = 0;
                     parameter_2 < parameters_2.size();
                     ++parameter_2) {
-                    indicators[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]].update(input[symbol], output[symbol]);
+                    indicators[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]].update(input[symbols[symbol]], output[symbols[symbol]]);
                 }
             }
         }
@@ -306,7 +306,7 @@ namespace open_bo_api {
                 for(uint32_t parameter_2 = 0;
                     parameter_2 < parameters_2.size();
                     ++parameter_2) {
-                    indicators[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]].test(input[symbol], output[symbol]);
+                    indicators[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]].test(input[symbols[symbol]], output[symbols[symbol]]);
                 }
             }
         }
