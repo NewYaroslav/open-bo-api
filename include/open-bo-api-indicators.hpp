@@ -134,25 +134,26 @@ namespace open_bo_api {
             for(uint32_t parameter = 0;
                 parameter < parameters.size();
                 ++parameter) {
+                int err = xtechnical_common::NO_INIT;
                 switch(type) {
                 case TypePriceIndicator::OPEN:
-                    if(it->second.open != 0) indicators[symbols[symbol]][parameters[parameter]].update(it->second.open);
+                    if(it->second.open != 0) err = indicators[symbols[symbol]][parameters[parameter]].update(it->second.open);
                     else indicators[symbols[symbol]][parameters[parameter]].clear();
                     break;
                 case TypePriceIndicator::HIGH:
-                    if(it->second.high != 0) indicators[symbols[symbol]][parameters[parameter]].update(it->second.high);
+                    if(it->second.high != 0) err = indicators[symbols[symbol]][parameters[parameter]].update(it->second.high);
                     else indicators[symbols[symbol]][parameters[parameter]].clear();
                     break;
                 case TypePriceIndicator::LOW:
-                    if(it->second.low != 0) indicators[symbols[symbol]][parameters[parameter]].update(it->second.low);
+                    if(it->second.low != 0) err = indicators[symbols[symbol]][parameters[parameter]].update(it->second.low);
                     else indicators[symbols[symbol]][parameters[parameter]].clear();
                     break;
                 case TypePriceIndicator::CLOSE:
-                    if(it->second.close != 0) indicators[symbols[symbol]][parameters[parameter]].update(it->second.close);
+                    if(it->second.close != 0) err = indicators[symbols[symbol]][parameters[parameter]].update(it->second.close);
                     else indicators[symbols[symbol]][parameters[parameter]].clear();
                     break;
                 case TypePriceIndicator::VOLUME:
-                    if(it->second.volume != 0) indicators[symbols[symbol]][parameters[parameter]].update(it->second.volume);
+                    if(it->second.volume != 0) err = indicators[symbols[symbol]][parameters[parameter]].update(it->second.volume);
                     else indicators[symbols[symbol]][parameters[parameter]].clear();
                     break;
                 }
