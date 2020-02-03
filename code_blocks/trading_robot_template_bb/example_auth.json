@@ -1,0 +1,20 @@
+{
+	"intrade_bar":{
+		"email":"example@gmail.com",
+		"password":"der_parol",
+		"demo_account":true,
+		"rub_currency":true,
+		"number_bars":100,
+		"sert_file":"curl-ca-bundle.crt",
+		"cookie_file":"intrade-bar.cookie",
+		"bets_log_file":"logger/intrade-bar-bets.log",
+		"work_log_file":"logger/intrade-bar-https-work.log",
+		"websocket_log_file":"logger/intrade-bar-https-work.log"
+	},
+	"news":{
+		"sert_file":"curl-ca-bundle.crt"
+	},
+	"trading_robot":{
+		"work_log_file":"logger/trading-robot-work.log"
+	}
+}

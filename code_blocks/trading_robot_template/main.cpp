@@ -76,14 +76,18 @@ int main(int argc, char **argv) {
     settings.init(json_settings);
     if(settings.check_error()) return EXIT_FAILURE;
 
-    /* Переменные для торговой стратегии */
-    std::vector<std::string> intrade_bar_symbols = open_bo_api::IntradeBar::get_list_symbols(); // массив имен символов брокера IntradeBar
+    /* массив имен символов брокера IntradeBar */
+    std::vector<std::string> intrade_bar_symbols = open_bo_api::IntradeBar::get_list_symbols();
+
     std::map<std::string, std::map<uint32_t, RSI_TYPE>> rsi_indicators; // массив индикаторов RSI
     std::vector<uint32_t> rsi_periods = open_bo_api::get_list_parameters<uint32_t>(10, 100, 1); // массив периодов индикатора, от 10 до 100 включительно с шагом 1
+    std::map<std::string, std::map<uint32_t, double>> rsi_output;
+
+    /* инициализируем индикаторы RSI */
     open_bo_api::init_indicators<RSI_TYPE>(
             intrade_bar_symbols,
             rsi_periods,
-            rsi_indicators); // инициализируем индикаторы RSI
+            rsi_indicators);
 
     /* параметры для торговли по стратегии */
     const uint32_t PERIOD_RSI = 10; // возьмем для нашей стратегии период индикатора 10 минут
@@ -100,239 +104,208 @@ int main(int argc, char **argv) {
                     [&](const std::map<std::string, open_bo_api::Candle> &candles,
                         const open_bo_api::IntradeBar::Api::EventType event,
                         const xtime::timestamp_t timestamp) {
-        /* вспомогательные переменные */
-        const uint32_t second = xtime::get_second_minute(timestamp); // секунда минуты
+        //
         static bool is_block_open_bo = false;
         static bool is_block_open_bo_one_deal = false;
 
-        /* проходим в цикле по всем символа брокера Intradebar */
-        for(size_t symbol = 0; symbol < intrade_bar_symbols.size(); ++symbol) {
-            std::string &symbol_name = intrade_bar_symbols[symbol];
-            /* получаем бар */
-            open_bo_api::Candle candle = open_bo_api::IntradeBar::Api::get_candle(symbol_name, candles);
-            switch(event) {
-            /* получено событие "ПОЛУЧЕНЫ ИСТОРИЧЕСКИЕ ДАННЫЕ" */
-            case open_bo_api::IntradeBar::Api::EventType::HISTORICAL_DATA_RECEIVED:
-                is_block_open_bo = false;
-                is_block_open_bo_one_deal = false;
-                /* проверяем бар на наличие данных */
-                if(!open_bo_api::IntradeBar::Api::check_candle(candle)) {
-                    /* данных нет, очищаем внутреннее состояние индикатора */
-                    rsi_indicators[symbol_name][PERIOD_RSI].clear();
-                    break;
-                }
-                /* обновляем состояние всех индикаторов*/
-                for(auto &item : rsi_indicators[symbol_name]) {
-                    item.second.update(candle.close);
-                }
-                break;
-            /* получено событие "НОВЫЙ ТИК" */
-            case open_bo_api::IntradeBar::Api::EventType::NEW_TICK:
-                /* получаем метку времени начала бара */
-                const xtime::timestamp_t bar_opening_timestamp = second == 0 ?
-                        timestamp - xtime::SECONDS_IN_MINUTE :
-                        timestamp;
+        const uint32_t second = xtime::get_second_minute(timestamp);
 
-                /* ждем 0 или 59 секунду бара */
-                if(second == 59 || second == 0) {
-                    /* блокируем открытие сделки, т.к. мы решили в одну минуту делать не более 1 сделки */
-                    if(is_block_open_bo_one_deal) break;
+        /* обрабатываем все индикаторы */
+        switch(event) {
 
-                    /* получаем размер ставки и процент выплат */
-                    double amount = 0, payout = 0;
-                    int err_open_bo = open_bo_api::IntradeBar::get_amount(
-                        amount,
-                        payout,
+        /* получен бар исторических данных для всех символов */
+        case open_bo_api::IntradeBar::Api::EventType::HISTORICAL_DATA_RECEIVED:
+            open_bo_api::update_indicators(
+                candles,
+                rsi_output,
+                intrade_bar_symbols,
+                rsi_periods,
+                rsi_indicators,
+                open_bo_api::TypePriceIndicator::CLOSE);
+            //
+            is_block_open_bo = false;
+            is_block_open_bo_one_deal = false;
+            break;
+
+        /* получен тик (секунда) новых данных для всех символов */
+        case open_bo_api::IntradeBar::Api::EventType::NEW_TICK:
+
+            /* ждем 59 секунду или начало минуты */
+            if(second != 59 && second != 0) break;
+
+            /* тестируем индикаторы, результат тестирования в rsi_output*/
+            open_bo_api::test_indicators(
+                candles,
+                rsi_output,
+                intrade_bar_symbols,
+                rsi_periods,
+                rsi_indicators,
+                open_bo_api::TypePriceIndicator::CLOSE);
+
+            /* реализуем стратегию торговли RSI на конец бара с периодом 10.
+             * Каждую минуту может быть не больше 1 сигнала (просто потому что для примера), если сигналов больше - пропускаем остальные
+             */
+
+            /* получаем метку времени начала бара
+             * так как цена закрытия бара приходится на 0 секунду следующего бара,
+             * иногда это нужно
+             */
+            const xtime::timestamp_t bar_opening_timestamp = second == 0 ?
+                timestamp - xtime::SECONDS_IN_MINUTE :
+                xtime::get_first_timestamp_minute(timestamp);
+
+            for(size_t symbol = 0; symbol < intrade_bar_symbols.size(); ++symbol) {
+                /* блокируем открытие сделки, т.к. мы решили в одну минуту делать не более 1 сделки */
+                if(is_block_open_bo_one_deal) break;
+
+                /* имя символа */
+                std::string &symbol_name = intrade_bar_symbols[symbol];
+
+                /* получаем размер ставки и процент выплат */
+                double amount = 0, payout = 0;
+                int err_open_bo = open_bo_api::IntradeBar::get_amount(
+                    amount,
+                    payout,
+                    symbol_name,
+                    timestamp,
+                    DURATION,
+                    intrade_bar_api.account_rub_currency(),
+                    intrade_bar_api.get_balance(),
+                    WINRATE,
+                    KELLY_ATTENUATOR);
+
+                /* если нет процента выплат, пропускаем сделку */
+                if(err_open_bo != open_bo_api::IntradeBar::ErrorType::OK) {
+                    const std::string message(
+                        symbol_name +
+                        " low payout: " + std::to_string(payout) +
+                        ", date:" + xtime::get_str_date_time(timestamp));
+                    std::cout << message << std::endl;
+                    open_bo_api::Logger::log(settings.trading_robot_work_log_file, message);
+                    continue;
+                }
+
+                /* проверяем 59 секунду */
+                if(second == 59) {
+                    double amount_next = 0, payout_next = 0;
+                    err_open_bo = open_bo_api::IntradeBar::get_amount(
+                        amount_next,
+                        payout_next,
                         symbol_name,
-                        timestamp,
+                        timestamp + 1,
                         DURATION,
                         intrade_bar_api.account_rub_currency(),
                         intrade_bar_api.get_balance(),
                         WINRATE,
                         KELLY_ATTENUATOR);
+                    /* если на 59 секунде процент выплат хороший, то пропускаем 59 секунду */
+                    if(err_open_bo == open_bo_api::IntradeBar::ErrorType::OK && payout <= payout_next) break;
+                    /* на 59 секунде условия лучше, чем на 0 секунде */
+                    is_block_open_bo = true;
+                } else {
+                    /* пропускаем 0 секунду, так как была сделка на 59 секунде */
+                    if(is_block_open_bo) break;
+                }
 
-                    /* если нет процента выплат, пропускаем сделку */
-                    if(err_open_bo != open_bo_api::IntradeBar::ErrorType::OK) {
+                /* получаем значение индикатора */
+                double rsi_out = rsi_output[symbol_name][PERIOD_RSI];
+                if(std::isnan(rsi_out)) continue;
+
+                /* реализуем простую стратегию, когда RSI выходит за уровни 70 или 30 */
+                const int BUY = 1;
+                const int SELL = -1;
+                const int NEUTRAL = 0;
+                int strategy_state = NEUTRAL;
+                if(rsi_out > 70) strategy_state = SELL;
+                else if(rsi_out < 30) strategy_state = BUY;
+                if(strategy_state == NEUTRAL) continue;
+
+                std::string signal_type = strategy_state == SELL ? "SELL" : "BUY";
+
+                /* фильтр новостей, фильтруем новости
+                 * со средней и большой волатильностью в пределах 30 минут
+                 */
+                if(open_bo_api::News::check_news_filter(
+                    symbol_name,
+                    bar_opening_timestamp,
+                    xtime::SECONDS_IN_MINUTE * 30,
+                    xtime::SECONDS_IN_MINUTE * 30,
+                    false,
+                    false,
+                    true,
+                    true)) {
+                    const std::string message(symbol_name + " " + signal_type + " signal filtered by news filter: " + xtime::get_str_date_time(timestamp));
+                    std::cout << message << std::endl;
+                    open_bo_api::Logger::log(settings.trading_robot_work_log_file, message);
+                    break;
+                }
+
+                /* открываем сделку и логируем все ее состояния */
+                uint32_t api_bet_id = 0;
+                int err = intrade_bar_api.open_bo(
+                    symbol_name, // имя символа
+                    "RSI", // заметка, например имя стратегии
+                    amount, // размер ставки
+                    strategy_state, // направление сделки
+                    DURATION, // длительность экспирации
+                    api_bet_id, // уникальный номер сделки в пределах библиотеки API
+                    [=](const open_bo_api::IntradeBar::Api::Bet &bet) {
+                    /* состояния сделки после запроса на сервер
+                     * (удачная сделкка, не удачная или была ошибка открытия сделки
+                     */
+                    if(bet.bet_status == open_bo_api::IntradeBar::BetStatus::WIN) {
                         const std::string message(
-                            symbol_name +
-                            " low payout: " + std::to_string(payout) +
-                            ", date:" + xtime::get_str_date_time(timestamp));
+                            symbol_name + " " +
+                            signal_type +
+                            ", status: WIN, broker id: " + std::to_string(bet.broker_bet_id) +
+                            ", api id: " + std::to_string(bet.api_bet_id));
                         std::cout << message << std::endl;
                         open_bo_api::Logger::log(settings.trading_robot_work_log_file, message);
-                        break;
-                    }
-
-                    /* проверяем 59 секунду */
-                    if(xtime::get_second_minute(timestamp) == 59) {
-                        double amount_next = 0, payout_next = 0;
-                        err_open_bo = open_bo_api::IntradeBar::get_amount(
-                            amount_next,
-                            payout_next,
-                            symbol_name,
-                            timestamp + 1,
-                            DURATION,
-                            intrade_bar_api.account_rub_currency(),
-                            intrade_bar_api.get_balance(),
-                            WINRATE,
-                            KELLY_ATTENUATOR);
-                        /* если на 59 секунде процент выплат хороший, то пропускаем 59 секунду */
-                        if(err_open_bo == open_bo_api::IntradeBar::ErrorType::OK && payout <= payout_next) break;
-                        /* на 59 секунде условия лучше, чем на 0 секунде */
-                        is_block_open_bo = true;
-                    } else {
-                        /* пропускаем 0 секунду, так как была сделка на 59 секунде */
-                        if(is_block_open_bo) break;
-                    }
-
-                    /* проверяем бар на наличие данных */
-                    if(!open_bo_api::IntradeBar::Api::check_candle(candle)) break;
-
-                    /* обновляем состояние индикатора */
-                    double rsi_out = 50;
-                    int err = rsi_indicators[symbol_name][PERIOD_RSI].test(candle.close, rsi_out);
-                    if(err != xtechnical_common::OK) break;
-
-                    /* реализуем простую стратегию */
-                    if(rsi_out > 70) {
-                        /* фильтр новостей */
-                        if(open_bo_api::News::check_news_filter(
-                            symbol_name,
-                            bar_opening_timestamp,
-                            xtime::SECONDS_IN_MINUTE * 30,
-                            xtime::SECONDS_IN_MINUTE * 30,
-                            false,
-                            false,
-                            true,
-                            true)) {
-                            const std::string message(symbol_name + " SELL signal filtered by news filter: " + xtime::get_str_date_time(timestamp));
-                            std::cout << message << std::endl;
-                            open_bo_api::Logger::log(settings.trading_robot_work_log_file, message);
-                            break;
-                        }
-
-                        /* открываем сделку */
-                        uint32_t api_bet_id = 0;
-                        int err = intrade_bar_api.open_bo(
-                            symbol_name,
-                            "RSI",
-                            amount,
-                            intrade_bar_common::SELL,
-                            DURATION,
-                            api_bet_id,
-                            [=](const open_bo_api::IntradeBar::Api::Bet &bet) {
-                            if(bet.bet_status == open_bo_api::IntradeBar::BetStatus::WIN) {
-                                const std::string message(
-                                    symbol_name +
-                                    " SELL, status: WIN, broker id: " + std::to_string(bet.broker_bet_id) +
-                                    ", api id: " + std::to_string(bet.api_bet_id));
-                                std::cout << message << std::endl;
-                                open_bo_api::Logger::log(settings.trading_robot_work_log_file, message);
-                            } else
-                            if(bet.bet_status == open_bo_api::IntradeBar::BetStatus::LOSS) {
-                                const std::string message(
-                                    symbol_name +
-                                    " SELL, status: LOSS, broker id: " + std::to_string(bet.broker_bet_id) +
-                                    ", api id: " + std::to_string(bet.api_bet_id));
-                                std::cout << message << std::endl;
-                                open_bo_api::Logger::log(settings.trading_robot_work_log_file, message);
-                            } else
-                            if(bet.bet_status == open_bo_api::IntradeBar::BetStatus::OPENING_ERROR) {
-                                const std::string message(
-                                    symbol_name +
-                                    " SELL, status: ERROR, api id: " + std::to_string(bet.api_bet_id));
-                                std::cout << message << std::endl;
-                                open_bo_api::Logger::log(settings.trading_robot_work_log_file, message);
-                            }
-                        });
-                        if(err != open_bo_api::IntradeBar::ErrorType::OK) {
-                            const std::string message(
-                                    symbol_name +
-                                    " BUY, status: ERROR, code: " + std::to_string(err));
-                                std::cout << message << std::endl;
-                            open_bo_api::Logger::log(settings.trading_robot_work_log_file, message);
-                        } else {
-                            const std::string message(
-                                symbol_name +
-                                " SELL deal open, amount: " + std::to_string(amount) +
-                                ", api id: " + std::to_string(api_bet_id) +
-                                ", date: " + xtime::get_str_date_time(timestamp));
-                            std::cout << message << std::endl;
-                            open_bo_api::Logger::log(settings.trading_robot_work_log_file, message);
-                            is_block_open_bo_one_deal = true;
-                        }
                     } else
-                    if(rsi_out < 30) {
-                        /* фильтр новостей */
-                        if(open_bo_api::News::check_news_filter(
-                            symbol_name,
-                            bar_opening_timestamp,
-                            xtime::SECONDS_IN_MINUTE * 30,
-                            xtime::SECONDS_IN_MINUTE * 30,
-                            false,
-                            false,
-                            true,
-                            true)) {
-                            const std::string message(symbol_name + " BUY signal filtered by news filter: " + xtime::get_str_date_time(timestamp));
-                            std::cout << message << std::endl;
-                            open_bo_api::Logger::log(settings.trading_robot_work_log_file, message);
-                            break;
-                        }
-
-                        /* открываем сделку */
-                        uint32_t api_bet_id = 0;
-                        int err = intrade_bar_api.open_bo(
-                            symbol_name,
-                            "RSI",
-                            amount,
-                            intrade_bar_common::BUY,
-                            DURATION,
-                            api_bet_id,
-                            [=](const open_bo_api::IntradeBar::Api::Bet &bet){
-                            if(bet.bet_status == open_bo_api::IntradeBar::BetStatus::WIN) {
-                                const std::string message(
-                                    symbol_name +
-                                    " BUY, status: WIN, broker id: " + std::to_string(bet.broker_bet_id) +
-                                    ", api id: " + std::to_string(bet.api_bet_id));
-                                std::cout << message << std::endl;
-                                open_bo_api::Logger::log(settings.trading_robot_work_log_file, message);
-                            } else
-                            if(bet.bet_status == open_bo_api::IntradeBar::BetStatus::LOSS) {
-                                const std::string message(
-                                    symbol_name +
-                                    " BUY, status: LOSS, broker id: " + std::to_string(bet.broker_bet_id) +
-                                    ", api id: " + std::to_string(bet.api_bet_id));
-                                std::cout << message << std::endl;
-                                open_bo_api::Logger::log(settings.trading_robot_work_log_file, message);
-                            } else
-                            if(bet.bet_status == open_bo_api::IntradeBar::BetStatus::OPENING_ERROR) {
-                                const std::string message(
-                                    symbol_name +
-                                    " BUY, status: ERROR, api id: " + std::to_string(bet.api_bet_id));
-                                std::cout << message << std::endl;
-                                open_bo_api::Logger::log(settings.trading_robot_work_log_file, message);
-                            }
-                        });
-                        if(err != open_bo_api::IntradeBar::ErrorType::OK) {
-                            const std::string message(
-                                    symbol_name +
-                                    " BUY, status: ERROR, code: " + std::to_string(err));
-                                std::cout << message << std::endl;
-                            open_bo_api::Logger::log(settings.trading_robot_work_log_file, message);
-                        } else {
-                            const std::string message(
-                                symbol_name +
-                                " BUY deal open, amount: " + std::to_string(amount) +
-                                ", api id: " + std::to_string(api_bet_id) +
-                                ", date: " + xtime::get_str_date_time(timestamp));
-                            std::cout << message << std::endl;
-                            open_bo_api::Logger::log(settings.trading_robot_work_log_file, message);
-                            is_block_open_bo_one_deal = true;
-                        }
+                    if(bet.bet_status == open_bo_api::IntradeBar::BetStatus::LOSS) {
+                        const std::string message(
+                            symbol_name + " " +
+                            signal_type +
+                            ", status: LOSS, broker id: " + std::to_string(bet.broker_bet_id) +
+                            ", api id: " + std::to_string(bet.api_bet_id));
+                        std::cout << message << std::endl;
+                        open_bo_api::Logger::log(settings.trading_robot_work_log_file, message);
+                    } else
+                    if(bet.bet_status == open_bo_api::IntradeBar::BetStatus::OPENING_ERROR) {
+                        const std::string message(
+                            symbol_name + " " +
+                            signal_type +
+                            ", status: ERROR, api id: " + std::to_string(bet.api_bet_id));
+                        std::cout << message << std::endl;
+                        open_bo_api::Logger::log(settings.trading_robot_work_log_file, message);
                     }
+                });
+
+                /* Если ошибка возникла раньше, чем мы успели отправить запрос,
+                 * логируем ее. Также запишем в лог момент вызова метода для открытия сделки
+                  */
+                if(err != open_bo_api::IntradeBar::ErrorType::OK) {
+                    const std::string message(
+                            symbol_name + " " +
+                            signal_type +
+                            ", status: ERROR, code: " + std::to_string(err));
+                        std::cout << message << std::endl;
+                    open_bo_api::Logger::log(settings.trading_robot_work_log_file, message);
+                } else {
+                    const std::string message(
+                        symbol_name + " " +
+                        signal_type +
+                        " deal open, amount: " + std::to_string(amount) +
+                        ", api id: " + std::to_string(api_bet_id) +
+                        ", date: " + xtime::get_str_date_time(timestamp));
+                    std::cout << message << std::endl;
+                    open_bo_api::Logger::log(settings.trading_robot_work_log_file, message);
+                    is_block_open_bo_one_deal = true;
                 }
-                break;
-            };
-        } // for symbol
+
+            } // for symbol
+            break;
+        }
 
         /* загружаем новости */
         if(event == open_bo_api::IntradeBar::Api::EventType::NEW_TICK && second == 0) {

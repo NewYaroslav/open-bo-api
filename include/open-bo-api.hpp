@@ -40,6 +40,7 @@
 namespace open_bo_api {
     using json = nlohmann::json;
     using Candle = xquotes_common::Candle;
+    using Candle = xquotes_common::Candle;
     using Logger = intrade_bar::Logger;
 
     typedef mt_bridge::MetatraderBridge<xquotes_common::Candle> MtBridge;   /**< Класс Моста между Metatrader и программой со стандартным классом для хранения баров */
