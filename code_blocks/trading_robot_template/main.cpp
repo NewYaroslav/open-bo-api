@@ -346,6 +346,8 @@ int main(int argc, char **argv) {
             return EXIT_FAILURE;
         }
         std::this_thread::yield();
+        // добавим сон
+        std::this_thread::sleep_for(std::chrono::milliseconds(5000));
     }
     return EXIT_SUCCESS;
 }
