@@ -310,6 +310,8 @@ int main(int argc, char **argv) {
         /* загружаем новости */
         if(event == open_bo_api::IntradeBar::Api::EventType::NEW_TICK && second == 0) {
             open_bo_api::News::async_update(timestamp);
+            /* для теста, просто попробуем получить экземпляр класса с данными новостей */
+            ForexprostoolsApiEasy::NewsList news_data = open_bo_api::News::get_news_list();
         }
     },
     false,

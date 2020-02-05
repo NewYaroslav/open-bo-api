@@ -39,7 +39,6 @@ namespace open_bo_api {
         static inline std::atomic<bool> is_error = ATOMIC_VAR_INIT(false);
     public:
 
-
         /** \brief Обновить список новостей
          *
          * \param timestamp Метка времени
@@ -167,6 +166,14 @@ namespace open_bo_api {
                 }
             }
             return is_news;
+        }
+
+        /** \brief Получить данные экономических новостей
+         * \return данные экономических новостей
+         */
+        inline static ForexprostoolsApiEasy::NewsList get_news_list() {
+            std::lock_guard<std::recursive_mutex> lock(list_news_mutex);
+            return news_data;
         }
 
         /** \brief Проверить наличие ошибки
