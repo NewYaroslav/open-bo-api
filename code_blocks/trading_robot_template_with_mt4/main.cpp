@@ -346,9 +346,11 @@ int main(int argc, char **argv) {
             };
         } // for symbol
 
-        /* загружаем новости */
+        /* загружаем новости и обновляем баланс */
         if(event == open_bo_api::IntradeBar::Api::EventType::NEW_TICK && second == 0) {
-            open_bo_api::News::async_update(timestamp);
+            open_bo_api::News::async_update(timestamp, settings.news_sert_file);
+
+            intrade_bar_api.update_balance();
         }
     },
     false,

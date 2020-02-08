@@ -82,11 +82,14 @@ namespace open_bo_api {
             auto it_add = candles_add.find(symbols[symbol]);
             if(it_src == candles_src.end() && it_add == candles_add.end()) continue;
             if(it_src->second.timestamp != it_add->second.timestamp) continue;
-            output_candles[symbols[symbol]].close = it_src->second.close != 0.0 ? it_src->second.close : it_add->second.close != 0.0 ? it_add->second.close : 0.0;
-            output_candles[symbols[symbol]].high = it_src->second.high != 0.0 ? it_src->second.high : it_add->second.high != 0.0 ? it_add->second.high : 0.0;
-            output_candles[symbols[symbol]].low = it_src->second.low != 0.0 ? it_src->second.low : it_add->second.low != 0.0 ? it_add->second.low : 0.0;
-            output_candles[symbols[symbol]].open = it_src->second.open != 0.0 ? it_src->second.open : it_add->second.open != 0.0 ? it_add->second.open : 0.0;
-            output_candles[symbols[symbol]].volume = it_src->second.volume != 0.0 ? it_src->second.volume : it_add->second.volume != 0.0 ? it_add->second.volume : 0.0;
+            output_candles[symbols[symbol]] = it_src->second;
+            auto it_new = output_candles.find(symbols[symbol]);
+            it_new->second.close = it_src->second.close != 0.0 ? it_src->second.close : it_add->second.close != 0.0 ? it_add->second.close : 0.0;
+            it_new->second.high = it_src->second.high != 0.0 ? it_src->second.high : it_add->second.high != 0.0 ? it_add->second.high : 0.0;
+            it_new->second.low = it_src->second.low != 0.0 ? it_src->second.low : it_add->second.low != 0.0 ? it_add->second.low : 0.0;
+            it_new->second.open = it_src->second.open != 0.0 ? it_src->second.open : it_add->second.open != 0.0 ? it_add->second.open : 0.0;
+            it_new->second.volume = it_src->second.volume != 0.0 ? it_src->second.volume : it_add->second.volume != 0.0 ? it_add->second.volume : 0.0;
+            it_new->second.timestamp = it_src->second.timestamp;
         }
     }
 

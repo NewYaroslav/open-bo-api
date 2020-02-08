@@ -122,7 +122,11 @@ int main(int argc, char **argv) {
                 rsi_periods,
                 rsi_indicators,
                 open_bo_api::TypePriceIndicator::CLOSE);
-            //
+
+            /* еще загрузим данные депозита */
+            intrade_bar_api.update_balance();
+
+            /* обнулим флаги */
             is_block_open_bo = false;
             is_block_open_bo_one_deal = false;
             break;
@@ -309,7 +313,7 @@ int main(int argc, char **argv) {
 
         /* загружаем новости */
         if(event == open_bo_api::IntradeBar::Api::EventType::NEW_TICK && second == 0) {
-            open_bo_api::News::async_update(timestamp);
+            open_bo_api::News::async_update(timestamp, settings.news_sert_file);
             /* для теста, просто попробуем получить экземпляр класса с данными новостей */
             ForexprostoolsApiEasy::NewsList news_data = open_bo_api::News::get_news_list();
         }
