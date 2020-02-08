@@ -38,7 +38,11 @@ namespace open_bo_api {
     public:
         std::string environmental_variable;
         std::string json_file_name; /**< Имя JSON файла */
+
+        std::string trading_robot_work_log_file = "logger/trading_robot_work_file.log";
+
         std::string news_sert_file = "curl-ca-bundle.crt";
+
         std::string intrade_bar_sert_file = "curl-ca-bundle.crt";
         std::string intrade_bar_cookie_file = "cookie/intrade-bar.cookie";
         std::string intrade_bar_bets_log_file = "logger/intrade-bar-bets.log";
@@ -46,11 +50,17 @@ namespace open_bo_api {
         std::string intrade_bar_websocket_log_file = "logger/intrade-bar-websocket.log";
         std::string intrade_bar_email;
         std::string intrade_bar_password;
-        std::string trading_robot_work_log_file = "logger/trading_robot_work_file.log";
         uint32_t intrade_bar_number_bars = 100; /**< количество баров м1 для инициализации исторических данных */
         bool is_intrade_bar_demo_account = true;
         bool is_intrade_bar_rub_currency = true;
+
         uint32_t mt_bridge_port = 5555; /**< Порт "Моста" для подключения к MetaTrader4 */
+
+        std::string telegram_token;
+        std::string telegram_proxy;
+        std::string telegram_proxy_pwd;
+        std::string telegram_sert_file;
+        std::string telegram_chats_id_file;
 
         Settings() {};
 
@@ -58,6 +68,16 @@ namespace open_bo_api {
             try {
                 if(j["environmental_variable"] != nullptr) {
                     environmental_variable = j["environmental_variable"];
+                }
+                //
+                if(j["telegram"]["token"] != nullptr) {
+                    telegram_token = j["telegram"]["token"];
+                }
+                if(j["telegram"]["proxy"] != nullptr) {
+                    telegram_proxy = j["telegram"]["proxy"];
+                }
+                if(j["telegram"]["proxy_pwd"] != nullptr) {
+                    telegram_proxy_pwd = j["telegram"]["proxy_pwd"];
                 }
                 //
                 if(j["mt_bridge"]["port"] != nullptr) {
