@@ -167,7 +167,7 @@ namespace open_bo_api {
         HistoryTester(
                 const std::string &path,
                 const std::vector<std::string> &symbols,
-                //const StorageType storage_type,
+                const StorageType storage_type,
                 const double time_speed,
                 const xtime::timestamp_t start_timestamp,
                 const xtime::timestamp_t stop_timestamp,
@@ -189,23 +189,22 @@ namespace open_bo_api {
                 for(size_t i = 0; i < symbols.size(); ++i) {
                     std::string storage_path(path + "//" + symbols[i]);
 
-                    //switch(storage_type) {
-                     //   case StorageType::QHS4:
-                     //   storage_path += ".qhs4";
-
-                     //   hist[symbols[i]] = std::make_shared<xquotes_history::QuotesHistory<>>(
-                     //       storage_path,
-                     //       xquotes_history::PRICE_OHLC,
-                     //       xquotes_history::USE_COMPRESSION);
-                      //      break;
-                     //   case StorageType::QHS5:
-
+                    switch(storage_type) {
+                    case StorageType::QHS4:
+                        storage_path += ".qhs4";
+                        hist[symbols[i]] = std::make_shared<xquotes_history::QuotesHistory<>>(
+                            storage_path,
+                            xquotes_history::PRICE_OHLC,
+                            xquotes_history::USE_COMPRESSION);
+                        break;
+                    case StorageType::QHS5:
+                        storage_path += ".qhs5";
                         hist[symbols[i]] = std::make_shared<xquotes_history::QuotesHistory<>>(
                             storage_path,
                             xquotes_history::PRICE_OHLCV,
                             xquotes_history::USE_COMPRESSION);
-                            break;
-                    //};
+                        break;
+                    };
                 }
             }
 

@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
     open_bo_api::HistoryTester history_tester(
                     settings.history_tester_storage_path,
                     intrade_bar_symbols,
-                    //open_bo_api::HistoryTester::StorageType::QHS4,
+                    open_bo_api::HistoryTester::StorageType::QHS5,
                     settings.history_tester_time_speed,
                     settings.history_tester_start_timestamp,
                     settings.history_tester_stop_timestamp,
@@ -99,6 +99,8 @@ int main(int argc, char **argv) {
                 rsi_indicators,
                 open_bo_api::TypePriceIndicator::CLOSE);
 
+            std::cout << open_bo_api::HistoryTester::get_candle("EURUSD", candles).close << std::endl;
+
             /* еще загрузим данные депозита */
             //history_tester.update_balance();
 
@@ -106,12 +108,12 @@ int main(int argc, char **argv) {
             is_block_open_bo = false;
             is_block_open_bo_one_deal = false;
 
-            std::cout << "get history canlde: " << xtime::get_str_date_time(timestamp) << std::endl;
+            //std::cout << "get history canlde: " << xtime::get_str_date_time(timestamp) << std::endl;
             break;
 
         /* получен тик (секунда) новых данных для всех символов */
         case open_bo_api::HistoryTester::EventType::NEW_TICK:
-            std::cout << "get tick: " << xtime::get_str_date_time(timestamp) << std::endl;
+            //std::cout << "get tick: " << xtime::get_str_date_time(timestamp) << std::endl;
             /* ждем 59 секунду или начало минуты */
             if(second != 59 && second != 0) break;
 
