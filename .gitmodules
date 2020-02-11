@@ -43,3 +43,6 @@
 [submodule "lib/mt-bridge"]
 	path = lib/mt-bridge
 	url = https://github.com/NewYaroslav/mt-bridge.git
+[submodule "lib/easy_bo_tester"]
+	path = lib/easy_bo_tester
+	url = https://github.com/NewYaroslav/easy_bo_tester.git

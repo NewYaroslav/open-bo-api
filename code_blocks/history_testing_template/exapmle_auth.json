@@ -1,0 +1,20 @@
+{
+	"intrade_bar":{
+		"demo_account":true,
+		"rub_currency":true,
+		"number_bars":10
+	},
+	"news":{
+		"sert_file":"curl-ca-bundle.crt"
+	},
+	"trading_robot":{
+		"work_log_file":"logger/trading-robot-work.log"
+	},
+	"history_tester":{
+		"storage_path":"D:\\_repoz\\binary.com_history_quotes\\storage",
+		"time_speed":600.0,
+		"number_bars":100,
+		"start_timestamp":"07.02.2020",
+		"stop_timestamp":"08.02.2020"
+	}
+}

@@ -40,11 +40,26 @@ namespace open_bo_api {
      */
     bool open_json_file(const std::string &file_name, json &auth_json) {
         std::ifstream auth_file(file_name);
-        if(!auth_file) return false;
+        if(!auth_file) {
+            std::cerr << "open_bo_api::ifstream, open file error" << std::endl;
+            return false;
+        }
         try {
             auth_file >> auth_json;
         }
+        catch (json::parse_error &e) {
+            std::cerr << "open_bo_api::open_json_file, json parser error: " << std::string(e.what()) << std::endl;
+            auth_file.close();
+            return false;
+        }
+        catch (std::exception e) {
+            std::cerr << "open_bo_api::open_json_file, json parser error: " << std::string(e.what()) << std::endl;
+            auth_file.close();
+            return false;
+        }
         catch(...) {
+            std::cerr << "open_bo_api::open_json_file, json parser error" << std::endl;
+            auth_file.close();
             return false;
         }
         auth_file.close();

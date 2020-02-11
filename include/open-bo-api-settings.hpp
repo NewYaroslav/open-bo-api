@@ -59,8 +59,14 @@ namespace open_bo_api {
         std::string telegram_token;
         std::string telegram_proxy;
         std::string telegram_proxy_pwd;
-        std::string telegram_sert_file;
-        std::string telegram_chats_id_file;
+        std::string telegram_sert_file = "curl-ca-bundle.crt";
+        std::string telegram_chats_id_file = "telegram/chats_id.json";
+
+        std::string history_tester_storage_path;
+        double history_tester_time_speed = 1.0;
+        uint32_t history_tester_number_bars = 100;
+        xtime::timestamp_t history_tester_start_timestamp = 0;
+        xtime::timestamp_t history_tester_stop_timestamp = 0;
 
         Settings() {};
 
@@ -78,6 +84,12 @@ namespace open_bo_api {
                 }
                 if(j["telegram"]["proxy_pwd"] != nullptr) {
                     telegram_proxy_pwd = j["telegram"]["proxy_pwd"];
+                }
+                if(j["telegram"]["sert_file"] != nullptr) {
+                    telegram_sert_file = j["telegram"]["sert_file"];
+                }
+                if(j["telegram"]["chats_id_file"] != nullptr) {
+                    telegram_chats_id_file = j["telegram"]["chats_id_file"];
                 }
                 //
                 if(j["mt_bridge"]["port"] != nullptr) {
@@ -123,6 +135,23 @@ namespace open_bo_api {
                     trading_robot_work_log_file = j["trading_robot"]["work_log_file"];
                 }
                 //
+                if(j["history_tester"]["storage_path"] != nullptr) {
+                    history_tester_storage_path = j["history_tester"]["storage_path"];
+                }
+                if(j["history_tester"]["time_speed"] != nullptr) {
+                    history_tester_time_speed = j["history_tester"]["time_speed"];
+                }
+                if(j["history_tester"]["number_bars"] != nullptr) {
+                    history_tester_number_bars = j["history_tester"]["number_bars"];
+                }
+                if(j["history_tester"]["start_timestamp"] != nullptr) {
+                    std::string date = j["history_tester"]["start_timestamp"];
+                    xtime::convert_str_to_timestamp(date, history_tester_start_timestamp);
+                }
+                if(j["history_tester"]["stop_timestamp"] != nullptr) {
+                    std::string date = j["history_tester"]["stop_timestamp"];
+                    xtime::convert_str_to_timestamp(date, history_tester_stop_timestamp);
+                }
             }
             catch (json::parse_error &e) {
                 std::cerr << "open_bo_api::Settings, json parser error: " << std::string(e.what()) << std::endl;
@@ -135,6 +164,7 @@ namespace open_bo_api {
                 return;
             }
             catch(...) {
+                std::cerr << "open_bo_api::Settings, json parser error" << std::endl;
                 is_error = true;
                 return;
             }
