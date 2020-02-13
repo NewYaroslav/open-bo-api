@@ -490,32 +490,6 @@ namespace open_bo_api {
             return do_send_message(chat_id, message);
         }
 
-#if(0)
-        /** \brief Очистить список запросов
-         */
-        void clear_request_future() {
-            std::lock_guard<std::recursive_mutex> lock(request_future_mutex);
-            size_t index = 0;
-            while(index < request_future.size()) {
-                try {
-                    if(request_future[index].valid()) {
-                        request_future[index].wait();
-                        request_future[index].get();
-                        request_future.erase(request_future.begin() + index);
-                        continue;
-                    }
-                }
-                catch(const std::exception &e) {
-                    std::cerr << "open_bo_api::clear_request_future() error, what: " << e.what() << std::endl;
-                }
-                catch(...) {
-                    std::cerr << "open_bo_api::clear_request_future() error" << std::endl;
-                }
-                ++index;
-            }
-        }
-#endif
-
         int load_chat_id() {
             std::lock_guard<std::mutex> lock(file_chats_id_mutex);
             std::ifstream file(chat_id_json_file);
@@ -576,53 +550,48 @@ namespace open_bo_api {
                         if(err == OK) continue;
                         is_error = true;
                     }
-                    OutputMessage output_message;
+
+                    std::this_thread::yield();
+                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+                    //OutputMessage output_message;
+                    std::vector<OutputMessage> output_messages;
                     {
                         std::lock_guard<std::mutex> lock(array_sent_messages_mutex);
                         if(array_sent_messages.size() == 0) {
-                            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                            std::this_thread::yield();
                             continue;
                         }
-                        output_message = array_sent_messages.front();
-                        array_sent_messages.erase(array_sent_messages.begin());
+                        //output_message = array_sent_messages.front();
+                        //array_sent_messages.erase(array_sent_messages.begin());
+                        output_messages = array_sent_messages;
+                        array_sent_messages.clear();
                     }
-                    int err = OK;
-                    const size_t attempts = 10;
-                    for(size_t n = 0; n < attempts; ++n) {
-                        if(is_request_future_shutdown) break;
-                        if((err = do_send_message(output_message.chat_id, output_message.message)) == OK) {
-                            is_error = false;
-                            break;
+
+                    std::this_thread::yield();
+
+                    for(size_t i = 0; i < output_messages.size(); ++i) {
+                        int err = OK;
+                        const size_t attempts = 10;
+                        for(size_t n = 0; n < attempts; ++n) {
+                            if(is_request_future_shutdown) break;
+                            if((err = do_send_message(output_messages[i].chat_id, output_messages[i].message)) == OK) {
+                                is_error = false;
+                                break;
+                            }
+                            std::this_thread::sleep_for(std::chrono::milliseconds(REPEAT_DELAY));
                         }
-                        std::this_thread::sleep_for(std::chrono::milliseconds(REPEAT_DELAY));
+                        if(err == OK) continue;
+                        is_error = true;
+                        break;
                     }
-                    if(err == OK) continue;
-                    is_error = true;
+                    std::this_thread::yield();
                 }
             });
         };
 
         ~TelegramApi() {
             is_request_future_shutdown = true;
-#if(0)
-            {
-                std::lock_guard<std::recursive_mutex> lock(request_future_mutex);
-                for(size_t i = 0; i < request_future.size(); ++i) {
-                    if(request_future[i].valid()) {
-                        try {
-                            request_future[i].wait();
-                            request_future[i].get();
-                        }
-                        catch(const std::exception &e) {
-                            std::cerr << "open_bo_api::~TelegramApi() error, what: " << e.what() << std::endl;
-                        }
-                        catch(...) {
-                            std::cerr << "open_bo_api::~TelegramApi() error" << std::endl;
-                        }
-                    }
-                }
-            }
-#endif
             if(messages_future.valid()) {
                 try {
                     messages_future.wait();
@@ -652,26 +621,6 @@ namespace open_bo_api {
                 }
                 return true;
             }
-#if(0)
-            {
-                std::lock_guard<std::recursive_mutex> lock(request_future_mutex);
-                request_future.resize(request_future.size() + 1);
-                request_future.back() = std::async(std::launch::async,[&] {
-                    int err = OK;
-                    const size_t attempts = 10;
-                    for(size_t n = 0; n < attempts; ++n) {
-                        if(is_request_future_shutdown) break;
-                        if((err = do_get_updates()) == OK) {
-                            //clear_request_future();
-                            return;
-                        }
-                        std::this_thread::sleep_for(std::chrono::milliseconds(REPEAT_DELAY));
-                    }
-                    //clear_request_future();
-                    is_error = true;
-                });
-            }
-#endif
             is_update_chats_id_store = true;
             return true;
         }
@@ -695,30 +644,22 @@ namespace open_bo_api {
                 return false;
             }
             if(add_send_message(chat, message) != OK) return false;
-#if(0)
-            {
-                std::lock_guard<std::recursive_mutex> lock(request_future_mutex);
-                request_future.resize(request_future.size() + 1);
-                request_future.back() = std::async(std::launch::async,[&,chat,message] {
-                    int err = OK;
-                    const size_t attempts = 10;
-                    for(size_t n = 0; n < attempts; ++n) {
-                        if(is_request_future_shutdown) break;
-                        if((err = do_send_message(chat, message)) == OK) {
-                            //clear_request_future();
-                            return;
-                        }
-                        std::this_thread::sleep_for(std::chrono::milliseconds(REPEAT_DELAY));
-                    }
-                    //clear_request_future();
-                    is_error = true;
-                });
-            }
-            std::future<void> f = std::async(std::launch::async,[&] {
-                clear_request_future();
-            });
-#endif
             return true;
+        }
+
+        void wait() {
+            while(!is_request_future_shutdown) {
+                std::this_thread::yield();
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                {
+                    std::lock_guard<std::mutex> lock(array_sent_messages_mutex);
+                    if(array_sent_messages.size() != 0) {
+                        std::this_thread::yield();
+                        continue;
+                    }
+                }
+                break;
+            }
         }
 
     };
