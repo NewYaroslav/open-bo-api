@@ -39,9 +39,47 @@ namespace open_bo_api {
 
         std::atomic<bool> is_error = ATOMIC_VAR_INIT(false);
 
-        std::mutex request_future_mutex;
-        std::vector<std::future<void>> request_future;
+        //std::recursive_mutex request_future_mutex;
+        //std::vector<std::future<void>> request_future;
         std::atomic<bool> is_request_future_shutdown = ATOMIC_VAR_INIT(false);
+
+        // для работы с массивом сообщений на отправление (начало)
+        std::future<void> messages_future;
+        std::mutex array_sent_messages_mutex;
+
+        /** \brief Класс для хранения собщений на отправку
+         */
+        class OutputMessage {
+        public:
+            int64_t chat_id = 0;
+            std::string message;
+            OutputMessage() {};
+
+            OutputMessage(const int64_t send_chat_id, const std::string &send_message) :
+                chat_id(send_chat_id), message(send_message) {};
+        };
+
+        std::vector<OutputMessage> array_sent_messages;
+
+        int add_send_message(const int64_t chat_id, const std::string &message) {
+            std::lock_guard<std::mutex> lock(array_sent_messages_mutex);
+            array_sent_messages.push_back(OutputMessage(chat_id, message));
+            return OK;
+        }
+
+        int add_send_message(const std::string &chat_name, const std::string &message) {
+            int64_t chat_id = 0;
+            {
+                std::lock_guard<std::mutex> lock(chats_id_mutex);
+                auto it = chats_id.find(chat_name);
+                if(it == chats_id.end()) return CHAT_ID_NOT_FOUND;
+                chat_id = it->second;
+            }
+            return add_send_message(chat_id, message);
+        }
+
+        std::atomic<bool> is_update_chats_id_store = ATOMIC_VAR_INIT(false);
+        // для работы с массивом сообщений на отправление (конец)
 
         /** \brief Разобрать путь на составляющие
          *
@@ -395,9 +433,6 @@ namespace open_bo_api {
             if(!file) return UNKNOWN_ERROR;
             try {
                 json j_chat_id;
-                //for(auto &it : chats_id) {
-                //    j_chat_id["chat_id"][it->first] = it->secod;
-                //}
                 j_chat_id["chats_id"] = chats_id;
                 file << std::setw(4) << j_chat_id << std::endl;
             }
@@ -423,7 +458,7 @@ namespace open_bo_api {
             method_name += std::to_string(chat_id);
             method_name += "&text=";
             method_name += message;
-            int err = do_request(true, sert_file, proxy, token, method_name, "", response);
+            int err = do_request(true, proxy, proxy_pwd, token, method_name, "", response);
             if(err != OK) return err;
             try {
                 json j = json::parse(response);
@@ -455,14 +490,16 @@ namespace open_bo_api {
             return do_send_message(chat_id, message);
         }
 
+#if(0)
         /** \brief Очистить список запросов
          */
         void clear_request_future() {
-            std::lock_guard<std::mutex> lock(request_future_mutex);
+            std::lock_guard<std::recursive_mutex> lock(request_future_mutex);
             size_t index = 0;
             while(index < request_future.size()) {
                 try {
                     if(request_future[index].valid()) {
+                        request_future[index].wait();
                         request_future[index].get();
                         request_future.erase(request_future.begin() + index);
                         continue;
@@ -477,6 +514,7 @@ namespace open_bo_api {
                 ++index;
             }
         }
+#endif
 
         int load_chat_id() {
             std::lock_guard<std::mutex> lock(file_chats_id_mutex);
@@ -488,10 +526,6 @@ namespace open_bo_api {
                 std::map<std::string,int64_t> temp = j["chats_id"];
                 std::map<std::string,int64_t> temp2 = chats_id;
                 chats_id.clear();
-                //for(size_t i = 0; i < j["chat_id"].size(); ++i) {
-                //int64_t chat_id = j["chat_id"][j]
-                //}
-
                 std::merge(temp.begin(), temp.end(), temp2.begin(), temp2.end(), std::inserter(chats_id, chats_id.begin()));
             }
             catch (json::parse_error &e) {
@@ -525,12 +559,54 @@ namespace open_bo_api {
                 return;
             }
             load_chat_id();
+            messages_future = std::async(std::launch::async,[&] {
+                while(!is_request_future_shutdown) {
+                    if(is_update_chats_id_store) {
+                        int err = OK;
+                        const size_t attempts = 10;
+                        for(size_t n = 0; n < attempts; ++n) {
+                            if(is_request_future_shutdown) break;
+                            if((err = do_get_updates()) == OK) {
+                                is_error = false;
+                                break;
+                            }
+                            std::this_thread::sleep_for(std::chrono::milliseconds(REPEAT_DELAY));
+                        }
+                        is_update_chats_id_store = false;
+                        if(err == OK) continue;
+                        is_error = true;
+                    }
+                    OutputMessage output_message;
+                    {
+                        std::lock_guard<std::mutex> lock(array_sent_messages_mutex);
+                        if(array_sent_messages.size() == 0) {
+                            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                            continue;
+                        }
+                        output_message = array_sent_messages.front();
+                        array_sent_messages.erase(array_sent_messages.begin());
+                    }
+                    int err = OK;
+                    const size_t attempts = 10;
+                    for(size_t n = 0; n < attempts; ++n) {
+                        if(is_request_future_shutdown) break;
+                        if((err = do_send_message(output_message.chat_id, output_message.message)) == OK) {
+                            is_error = false;
+                            break;
+                        }
+                        std::this_thread::sleep_for(std::chrono::milliseconds(REPEAT_DELAY));
+                    }
+                    if(err == OK) continue;
+                    is_error = true;
+                }
+            });
         };
 
         ~TelegramApi() {
             is_request_future_shutdown = true;
+#if(0)
             {
-                std::lock_guard<std::mutex> lock(request_future_mutex);
+                std::lock_guard<std::recursive_mutex> lock(request_future_mutex);
                 for(size_t i = 0; i < request_future.size(); ++i) {
                     if(request_future[i].valid()) {
                         try {
@@ -544,6 +620,19 @@ namespace open_bo_api {
                             std::cerr << "open_bo_api::~TelegramApi() error" << std::endl;
                         }
                     }
+                }
+            }
+#endif
+            if(messages_future.valid()) {
+                try {
+                    messages_future.wait();
+                    messages_future.get();
+                }
+                catch(const std::exception &e) {
+                    std::cerr << "open_bo_api::~TelegramApi() error, what: " << e.what() << std::endl;
+                }
+                catch(...) {
+                    std::cerr << "open_bo_api::~TelegramApi() error" << std::endl;
                 }
             }
         }
@@ -563,21 +652,27 @@ namespace open_bo_api {
                 }
                 return true;
             }
+#if(0)
             {
-                std::lock_guard<std::mutex> lock(request_future_mutex);
+                std::lock_guard<std::recursive_mutex> lock(request_future_mutex);
                 request_future.resize(request_future.size() + 1);
                 request_future.back() = std::async(std::launch::async,[&] {
                     int err = OK;
                     const size_t attempts = 10;
                     for(size_t n = 0; n < attempts; ++n) {
                         if(is_request_future_shutdown) break;
-                        if((err = do_get_updates()) == OK) return;
+                        if((err = do_get_updates()) == OK) {
+                            //clear_request_future();
+                            return;
+                        }
                         std::this_thread::sleep_for(std::chrono::milliseconds(REPEAT_DELAY));
                     }
+                    //clear_request_future();
                     is_error = true;
                 });
             }
-            clear_request_future();
+#endif
+            is_update_chats_id_store = true;
             return true;
         }
 
@@ -599,21 +694,30 @@ namespace open_bo_api {
                 is_error = true;
                 return false;
             }
+            if(add_send_message(chat, message) != OK) return false;
+#if(0)
             {
-                std::lock_guard<std::mutex> lock(request_future_mutex);
+                std::lock_guard<std::recursive_mutex> lock(request_future_mutex);
                 request_future.resize(request_future.size() + 1);
                 request_future.back() = std::async(std::launch::async,[&,chat,message] {
                     int err = OK;
                     const size_t attempts = 10;
                     for(size_t n = 0; n < attempts; ++n) {
                         if(is_request_future_shutdown) break;
-                        if((err = do_send_message(chat, message)) == OK) return;
+                        if((err = do_send_message(chat, message)) == OK) {
+                            //clear_request_future();
+                            return;
+                        }
                         std::this_thread::sleep_for(std::chrono::milliseconds(REPEAT_DELAY));
                     }
+                    //clear_request_future();
                     is_error = true;
                 });
             }
-            clear_request_future();
+            std::future<void> f = std::async(std::launch::async,[&] {
+                clear_request_future();
+            });
+#endif
             return true;
         }
 

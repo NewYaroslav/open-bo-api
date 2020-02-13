@@ -1,0 +1,8 @@
+{
+	"telegram":{
+		"token":"123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11",
+		"proxy":"155.225.214.29:3128",
+		"sert_file":"curl-ca-bundle.crt",
+		"chats_id_file":"telegram/save-chat-id.json"
+	}
+}

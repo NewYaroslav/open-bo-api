@@ -60,7 +60,7 @@ namespace open_bo_api {
         std::string telegram_proxy;
         std::string telegram_proxy_pwd;
         std::string telegram_sert_file = "curl-ca-bundle.crt";
-        std::string telegram_chats_id_file = "telegram/chats_id.json";
+        std::string telegram_chats_id_file = "telegram/save_chats_id.json";
 
         std::string history_tester_storage_path;
         double history_tester_time_speed = 1.0;
