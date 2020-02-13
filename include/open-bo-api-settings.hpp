@@ -182,6 +182,8 @@ namespace open_bo_api {
                 intrade_bar_work_log_file = std::string(env_ptr) + "\\" + intrade_bar_work_log_file;
                 intrade_bar_websocket_log_file = std::string(env_ptr) + "\\" + intrade_bar_websocket_log_file;
                 trading_robot_work_log_file = std::string(env_ptr) + "\\" + trading_robot_work_log_file;
+				telegram_sert_file = std::string(env_ptr) + "\\" + telegram_sert_file;
+				telegram_chats_id_file = std::string(env_ptr) + "\\" + telegram_chats_id_file;
             }
         }
 
