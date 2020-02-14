@@ -39,8 +39,6 @@ namespace open_bo_api {
 
         std::atomic<bool> is_error = ATOMIC_VAR_INIT(false);
 
-        //std::recursive_mutex request_future_mutex;
-        //std::vector<std::future<void>> request_future;
         std::atomic<bool> is_request_future_shutdown = ATOMIC_VAR_INIT(false);
 
         // для работы с массивом сообщений на отправление (начало)
@@ -62,8 +60,10 @@ namespace open_bo_api {
         std::vector<OutputMessage> array_sent_messages;
 
         int add_send_message(const int64_t chat_id, const std::string &message) {
-            std::lock_guard<std::mutex> lock(array_sent_messages_mutex);
-            array_sent_messages.push_back(OutputMessage(chat_id, message));
+            {
+                std::lock_guard<std::mutex> lock(array_sent_messages_mutex);
+                array_sent_messages.push_back(OutputMessage(chat_id, message));
+            }
             return OK;
         }
 
@@ -179,6 +179,7 @@ namespace open_bo_api {
             } else return std::string::npos;
         }
 
+#if(0)
         int get_list_proxy(std::vector<std::string> &list_http_proxy) {
             CURL *curl;
             curl = curl_easy_init();
@@ -250,13 +251,10 @@ namespace open_bo_api {
                 o << response << std::endl;
                 o.close();
 
-
                 std::size_t beg_pos = response.find("<tbody>");
                 std::size_t end_pos = response.find("</tbody>");
                 if(beg_pos == std::string::npos || end_pos == std::string::npos) return NO_ANSWER;
                 std::string temp = response.substr(beg_pos, end_pos - beg_pos);
-
-                std::cout << "temp " << temp <<  std::endl;
 
 
                 // <td>118.174.211.220</td>
@@ -279,6 +277,7 @@ namespace open_bo_api {
             std::cerr << "Error: [" << result << "] - " << error_buffer << std::endl;
             return result;
         }
+#endif
 
         /** \brief Отправить запрос
          *
@@ -379,7 +378,7 @@ namespace open_bo_api {
                 }
                 return OK;
             }
-            std::cerr << "Error: [" << result << "] - " << error_buffer << std::endl;
+            std::cerr << "open_bo_api::TelegramApi::do_request curl error: [" << result << "] - " << error_buffer << std::endl;
             return result;
         }
 
@@ -433,7 +432,10 @@ namespace open_bo_api {
             if(!file) return UNKNOWN_ERROR;
             try {
                 json j_chat_id;
-                j_chat_id["chats_id"] = chats_id;
+                {
+                    std::lock_guard<std::mutex> lock(chats_id_mutex);
+                    j_chat_id["chats_id"] = chats_id;
+                }
                 file << std::setw(4) << j_chat_id << std::endl;
             }
             catch (json::parse_error &e) {
@@ -478,6 +480,7 @@ namespace open_bo_api {
             }
             return OK;
         }
+
 
         int do_send_message(const std::string &chat_name, const std::string &message) {
             int64_t chat_id = 0;
@@ -554,16 +557,10 @@ namespace open_bo_api {
                     std::this_thread::yield();
                     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-                    //OutputMessage output_message;
                     std::vector<OutputMessage> output_messages;
                     {
                         std::lock_guard<std::mutex> lock(array_sent_messages_mutex);
-                        if(array_sent_messages.size() == 0) {
-                            std::this_thread::yield();
-                            continue;
-                        }
-                        //output_message = array_sent_messages.front();
-                        //array_sent_messages.erase(array_sent_messages.begin());
+                        if(array_sent_messages.size() == 0) continue;
                         output_messages = array_sent_messages;
                         array_sent_messages.clear();
                     }
@@ -653,10 +650,7 @@ namespace open_bo_api {
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
                 {
                     std::lock_guard<std::mutex> lock(array_sent_messages_mutex);
-                    if(array_sent_messages.size() != 0) {
-                        std::this_thread::yield();
-                        continue;
-                    }
+                    if(array_sent_messages.size() != 0) continue;
                 }
                 break;
             }
