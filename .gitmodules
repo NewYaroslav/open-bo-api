@@ -46,3 +46,6 @@
 [submodule "lib/easy_bo_tester"]
 	path = lib/easy_bo_tester
 	url = https://github.com/NewYaroslav/easy_bo_tester.git
+[submodule "lib/olymptrade-cpp-api"]
+	path = lib/olymptrade-cpp-api
+	url = https://github.com/NewYaroslav/olymptrade-cpp-api.git
