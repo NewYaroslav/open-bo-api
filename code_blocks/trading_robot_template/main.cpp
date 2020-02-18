@@ -115,6 +115,7 @@ int main(int argc, char **argv) {
 
         /* получен бар исторических данных для всех символов */
         case open_bo_api::IntradeBar::Api::EventType::HISTORICAL_DATA_RECEIVED:
+            std::cout << "hist: " << xtime::get_str_date_time(timestamp) << std::endl;
             open_bo_api::update_indicators(
                 candles,
                 rsi_output,
@@ -133,7 +134,7 @@ int main(int argc, char **argv) {
 
         /* получен тик (секунда) новых данных для всех символов */
         case open_bo_api::IntradeBar::Api::EventType::NEW_TICK:
-
+            std::cout << "tick: " << xtime::get_str_date_time(timestamp) << "  \r";
             /* ждем 59 секунду или начало минуты */
             if(second != 59 && second != 0) break;
 
@@ -245,7 +246,7 @@ int main(int argc, char **argv) {
                 }
 
                 /* открываем сделку и логируем все ее состояния */
-                uint32_t api_bet_id = 0;
+                uint64_t api_bet_id = 0;
                 int err = intrade_bar_api.open_bo(
                     symbol_name, // имя символа
                     "RSI", // заметка, например имя стратегии
