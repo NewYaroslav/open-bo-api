@@ -33,6 +33,8 @@ namespace open_bo_api {
         std::string sert_file;
         std::string chat_id_json_file;
 
+        std::atomic<bool> is_token = ATOMIC_VAR_INIT(false);
+
         std::mutex chats_id_mutex;
         std::map<std::string, int64_t> chats_id;
         std::mutex file_chats_id_mutex;
@@ -531,10 +533,13 @@ namespace open_bo_api {
                 const std::string &bot_chat_id_json_file = "save_chat_id.json") :
                 token(bot_token), proxy(bot_proxy), proxy_pwd(bot_proxy_pwd),
                 sert_file(bot_sert_file), chat_id_json_file(bot_chat_id_json_file)  {
+            if(bot_token.size() != 0) is_token = true;
+
             if(curl_global_init(CURL_GLOBAL_ALL) !=0) {
                 is_error = true;
                 return;
             }
+            if(!is_token) return;
             load_chat_id();
             messages_future = std::async(std::launch::async,[&] {
                 while(!is_request_future_shutdown) {
@@ -588,6 +593,7 @@ namespace open_bo_api {
         };
 
         ~TelegramApi() {
+            if(!is_token) return;
             is_request_future_shutdown = true;
             if(messages_future.valid()) {
                 try {
@@ -609,6 +615,7 @@ namespace open_bo_api {
          * \return Вернет true в случае успешного завершения (не справедливо для асинхронного метода)
          */
         bool update_chats_id_store(const bool is_async = true) {
+            if(!is_token) return false;
             if(!is_async) {
                 int err = OK;
                 const size_t attempts = 10;
@@ -630,6 +637,7 @@ namespace open_bo_api {
          */
         template<class CHAT_TYPE>
         bool send_message(const CHAT_TYPE chat, const std::string &message, const bool is_async = true) {
+            if(!is_token) return false;
             if(!is_async) {
                 int err = OK;
                 const size_t attempts = 10;
@@ -645,6 +653,7 @@ namespace open_bo_api {
         }
 
         void wait() {
+            if(!is_token) return;
             while(!is_request_future_shutdown) {
                 std::this_thread::yield();
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
