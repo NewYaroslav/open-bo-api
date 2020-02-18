@@ -96,6 +96,7 @@ int main(int argc, char **argv) {
     const double KELLY_ATTENUATOR = 0.4;
 
     /* инициализируем список новостей */
+    ForexprostoolsApiEasy::NewsList news_data;
     open_bo_api::News::async_update(xtime::get_timestamp(), settings.news_sert_file);
 
     /* получаем в отдельном потоке тики котировок и исторические данные брокера */
@@ -124,8 +125,10 @@ int main(int argc, char **argv) {
                 rsi_indicators,
                 open_bo_api::TypePriceIndicator::CLOSE);
 
-            /* еще загрузим данные депозита */
-            intrade_bar_api.update_balance();
+            /* асинхронно обновим список новостей */
+            open_bo_api::News::async_update(timestamp, settings.news_sert_file);
+            /* для теста, просто попробуем получить экземпляр класса с данными новостей */
+            news_data = open_bo_api::News::get_news_list();
 
             /* обнулим флаги */
             is_block_open_bo = false;
@@ -134,7 +137,11 @@ int main(int argc, char **argv) {
 
         /* получен тик (секунда) новых данных для всех символов */
         case open_bo_api::IntradeBar::Api::EventType::NEW_TICK:
-            std::cout << "tick: " << xtime::get_str_date_time(timestamp) << "  \r";
+            std::cout << "tick: " << xtime::get_str_date_time(timestamp) << " " << intrade_bar_api.get_balance() <<  "      \r";
+            if(second == 30) {
+                /* обновим данные депозита в середине каждой минуты */
+                intrade_bar_api.update_balance();
+            }
             /* ждем 59 секунду или начало минуты */
             if(second != 59 && second != 0) break;
 
@@ -312,12 +319,6 @@ int main(int argc, char **argv) {
             break;
         }
 
-        /* загружаем новости */
-        if(event == open_bo_api::IntradeBar::Api::EventType::NEW_TICK && second == 0) {
-            open_bo_api::News::async_update(timestamp, settings.news_sert_file);
-            /* для теста, просто попробуем получить экземпляр класса с данными новостей */
-            ForexprostoolsApiEasy::NewsList news_data = open_bo_api::News::get_news_list();
-        }
     },
     false,
     settings.intrade_bar_sert_file,
