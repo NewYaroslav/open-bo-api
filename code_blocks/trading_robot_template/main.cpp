@@ -111,6 +111,8 @@ int main(int argc, char **argv) {
 
         const uint32_t second = xtime::get_second_minute(timestamp);
 
+        open_bo_api::Candle test_candle;
+
         /* обрабатываем все индикаторы */
         switch(event) {
 
@@ -124,6 +126,20 @@ int main(int argc, char **argv) {
                 rsi_periods,
                 rsi_indicators,
                 open_bo_api::TypePriceIndicator::CLOSE);
+
+            //test_candle = open_bo_api::IntradeBar::Api::get_candle("XAUUSD", candles);
+            //std::cout << "test_candle, close: " << test_candle.close << " v: " << test_candle.volume << std::endl;
+
+            for(auto &c : candles) {
+                if(c.second.close == 0 || c.second.open == 0 || c.second.volume == 0) {
+                    const std::string message(
+                    "candle data error, c->second.close: " + std::to_string(c.second.close) +
+                    " c->second.open: " + std::to_string(c.second.open) +
+                    " symbol: " + c.first +
+                    " open bar time: " + xtime::get_str_date_time(timestamp));
+                    std::cout << message << std::endl;
+                }
+            }
 
             /* асинхронно обновим список новостей */
             open_bo_api::News::async_update(timestamp, settings.news_sert_file);
