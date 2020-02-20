@@ -7,6 +7,18 @@
 #include <xtime.hpp>
 #include <algorithm>
 
+#define OPEN_BO_API_TELEGRAM_EMOJI_TIME u8"🕓"
+#define OPEN_BO_API_TELEGRAM_EMOJI_WARNING u8"⚠️"
+#define OPEN_BO_API_TELEGRAM_EMOJI_STOP u8"⛔️"
+#define OPEN_BO_API_TELEGRAM_EMOJI_GOOD u8"✅"
+#define OPEN_BO_API_TELEGRAM_EMOJI_BAD u8"❌"
+#define OPEN_BO_API_TELEGRAM_EMOJI_PAUSE u8"⏸"
+#define OPEN_BO_API_TELEGRAM_EMOJI_PLAY u8"▶️"
+#define OPEN_BO_API_TELEGRAM_EMOJI_RECORD u8"🔴"
+#define OPEN_BO_API_TELEGRAM_EMOJI_DOLLAR u8"💵"
+#define OPEN_BO_API_TELEGRAM_EMOJI_UP u8"🔼"
+#define OPEN_BO_API_TELEGRAM_EMOJI_DOWN u8"🔽"
+
 namespace open_bo_api {
 
     /** \brief Класс API телеграмма
@@ -32,6 +44,8 @@ namespace open_bo_api {
         std::string proxy_pwd;
         std::string sert_file;
         std::string chat_id_json_file;
+
+        uint32_t timeout = 120;
 
         std::atomic<bool> is_token = ATOMIC_VAR_INIT(false);
 
@@ -305,10 +319,10 @@ namespace open_bo_api {
             url += token;
             url += "/";
             url += method_name;
-            //std::string url("https://yandex.ru/");
+
             char error_buffer[CURL_ERROR_SIZE];
-            const int TIME_OUT = 60;
             int content_encoding = 0;   // Тип кодирования сообщения
+
             std::string buffer;
 
             if(is_post_request) curl_easy_setopt(curl, CURLOPT_POST, 1L);
@@ -338,7 +352,7 @@ namespace open_bo_api {
             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writer);
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
 
-            curl_easy_setopt(curl, CURLOPT_TIMEOUT, TIME_OUT);
+            curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
 
             curl_easy_setopt(curl, CURLOPT_HEADERDATA, &content_encoding);
             curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, header_callback);
@@ -530,9 +544,10 @@ namespace open_bo_api {
                 const std::string &bot_proxy,
                 const std::string &bot_proxy_pwd,
                 const std::string &bot_sert_file = "curl-ca-bundle.crt",
-                const std::string &bot_chat_id_json_file = "save_chat_id.json") :
+                const std::string &bot_chat_id_json_file = "save_chat_id.json",
+                const uint32_t bot_timeout = 120) :
                 token(bot_token), proxy(bot_proxy), proxy_pwd(bot_proxy_pwd),
-                sert_file(bot_sert_file), chat_id_json_file(bot_chat_id_json_file)  {
+                sert_file(bot_sert_file), chat_id_json_file(bot_chat_id_json_file), timeout(bot_timeout)  {
             if(bot_token.size() != 0) is_token = true;
 
             if(curl_global_init(CURL_GLOBAL_ALL) !=0) {
@@ -652,6 +667,8 @@ namespace open_bo_api {
             return true;
         }
 
+        /** \brief Ждать, пока не отправятся все сообщения в очереди
+         */
         void wait() {
             if(!is_token) return;
             while(!is_request_future_shutdown) {
