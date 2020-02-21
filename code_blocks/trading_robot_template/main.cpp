@@ -98,6 +98,7 @@ int main(int argc, char **argv) {
     /* инициализируем список новостей */
     ForexprostoolsApiEasy::NewsList news_data;
     open_bo_api::News::async_update(xtime::get_timestamp(), settings.news_sert_file);
+    open_bo_api::Logger::log(settings.get_work_log_file_name(), std::string("start"));
 
     /* получаем в отдельном потоке тики котировок и исторические данные брокера */
     open_bo_api::IntradeBar::Api intrade_bar_api(
@@ -133,11 +134,12 @@ int main(int argc, char **argv) {
             for(auto &c : candles) {
                 if(c.second.close == 0 || c.second.open == 0 || c.second.volume == 0) {
                     const std::string message(
-                    "candle data error, c->second.close: " + std::to_string(c.second.close) +
-                    " c->second.open: " + std::to_string(c.second.open) +
+                    "candle data error, c.second.close: " + std::to_string(c.second.close) +
+                    " c.second.open: " + std::to_string(c.second.open) +
                     " symbol: " + c.first +
                     " open bar time: " + xtime::get_str_date_time(timestamp));
                     std::cout << message << std::endl;
+                    open_bo_api::Logger::log(settings.get_work_log_file_name(), message);
                 }
             }
 
@@ -209,7 +211,7 @@ int main(int argc, char **argv) {
                         " low payout: " + std::to_string(payout) +
                         ", date:" + xtime::get_str_date_time(timestamp));
                     std::cout << message << std::endl;
-                    open_bo_api::Logger::log(settings.trading_robot_work_log_file, message);
+                    open_bo_api::Logger::log(settings.get_work_log_file_name(), message);
                     continue;
                 }
 
@@ -264,7 +266,7 @@ int main(int argc, char **argv) {
                     true)) {
                     const std::string message(symbol_name + " " + signal_type + " signal filtered by news filter: " + xtime::get_str_date_time(timestamp));
                     std::cout << message << std::endl;
-                    open_bo_api::Logger::log(settings.trading_robot_work_log_file, message);
+                    open_bo_api::Logger::log(settings.get_work_log_file_name(), message);
                     break;
                 }
 
@@ -297,7 +299,7 @@ int main(int argc, char **argv) {
                             ", status: LOSS, broker id: " + std::to_string(bet.broker_bet_id) +
                             ", api id: " + std::to_string(bet.api_bet_id));
                         std::cout << message << std::endl;
-                        open_bo_api::Logger::log(settings.trading_robot_work_log_file, message);
+                        open_bo_api::Logger::log(settings.get_work_log_file_name(), message);
                     } else
                     if(bet.bet_status == open_bo_api::IntradeBar::BetStatus::OPENING_ERROR) {
                         const std::string message(
@@ -305,7 +307,7 @@ int main(int argc, char **argv) {
                             signal_type +
                             ", status: ERROR, api id: " + std::to_string(bet.api_bet_id));
                         std::cout << message << std::endl;
-                        open_bo_api::Logger::log(settings.trading_robot_work_log_file, message);
+                        open_bo_api::Logger::log(settings.get_work_log_file_name(), message);
                     }
                 });
 
@@ -318,7 +320,7 @@ int main(int argc, char **argv) {
                             signal_type +
                             ", status: ERROR, code: " + std::to_string(err));
                         std::cout << message << std::endl;
-                    open_bo_api::Logger::log(settings.trading_robot_work_log_file, message);
+                    open_bo_api::Logger::log(settings.get_work_log_file_name(), message);
                 } else {
                     const std::string message(
                         symbol_name + " " +
@@ -327,7 +329,7 @@ int main(int argc, char **argv) {
                         ", api id: " + std::to_string(api_bet_id) +
                         ", date: " + xtime::get_str_date_time(timestamp));
                     std::cout << message << std::endl;
-                    open_bo_api::Logger::log(settings.trading_robot_work_log_file, message);
+                    open_bo_api::Logger::log(settings.get_work_log_file_name(), message);
                     is_block_open_bo_one_deal = true;
                 }
 
@@ -352,7 +354,7 @@ int main(int argc, char **argv) {
     if(err_connect != open_bo_api::IntradeBar::ErrorType::OK) {
         std::cerr << "error connecting to broker intrade.bar" << std::endl;
         const std::string err_message("error connecting to broker intrade.bar, code: " + std::to_string(err_connect));
-        open_bo_api::Logger::log(settings.trading_robot_work_log_file, err_message);
+        open_bo_api::Logger::log(settings.get_work_log_file_name(), err_message);
         return EXIT_FAILURE;
     }
 
@@ -366,7 +368,7 @@ int main(int argc, char **argv) {
         if(open_bo_api::News::check_error()) {
             const std::string err_message("error downloading news");
             std::cerr << err_message << std::endl;
-            open_bo_api::Logger::log(settings.trading_robot_work_log_file, err_message);
+            open_bo_api::Logger::log(settings.get_work_log_file_name(), err_message);
             return EXIT_FAILURE;
         }
         std::this_thread::yield();
@@ -379,40 +381,40 @@ int main(int argc, char **argv) {
 void signal_handler_termination(int signal) {
     const std::string err_message("termination request, sent to the program, code: " + std::to_string(signal));
     std::cerr << err_message << std::endl;
-    open_bo_api::Logger::log(settings.trading_robot_work_log_file, err_message);
+    open_bo_api::Logger::log(settings.get_work_log_file_name(), err_message);
     exit(EXIT_FAILURE);
 }
 
 void signal_handler_abnormal(int signal) {
     const std::string err_message("abnormal termination condition, as is e.g. initiated by std::abort(), code: " + std::to_string(signal));
-    open_bo_api::Logger::log(settings.trading_robot_work_log_file, err_message);
+    open_bo_api::Logger::log(settings.get_work_log_file_name(), err_message);
     std::cerr << err_message << std::endl;
     exit(EXIT_FAILURE);
 }
 
 void signal_handler_external_interrupt(int signal) {
     const std::string err_message("external interrupt, usually initiated by the user, code: " + std::to_string(signal));
-    open_bo_api::Logger::log(settings.trading_robot_work_log_file, err_message);
+    open_bo_api::Logger::log(settings.get_work_log_file_name(), err_message);
     std::cerr << err_message << std::endl;
     exit(EXIT_FAILURE);
 }
 
 void signal_handler_erroneous_arithmetic_operation(int signal) {
     const std::string err_message("erroneous arithmetic operation such as divide by zero, code: " + std::to_string(signal));
-    open_bo_api::Logger::log(settings.trading_robot_work_log_file, err_message);
+    open_bo_api::Logger::log(settings.get_work_log_file_name(), err_message);
     std::cerr << err_message << std::endl;
     exit(EXIT_FAILURE);
 }
 
 void signal_handler_invalid_memory_access(int signal) {
     const std::string err_message("invalid memory access (segmentation fault), code: " + std::to_string(signal));
-    open_bo_api::Logger::log(settings.trading_robot_work_log_file, err_message);
+    open_bo_api::Logger::log(settings.get_work_log_file_name(), err_message);
     std::cerr << err_message << std::endl;
     exit(EXIT_FAILURE);
 }
 
 void atexit_handler() {
     const std::string err_message("program closure");
-    open_bo_api::Logger::log(settings.trading_robot_work_log_file, err_message);
+    open_bo_api::Logger::log(settings.get_work_log_file_name(), err_message);
     std::cerr << err_message << std::endl;
 }

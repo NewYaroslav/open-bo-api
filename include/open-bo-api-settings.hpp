@@ -40,6 +40,7 @@ namespace open_bo_api {
         std::string json_file_name; /**< Имя JSON файла */
 
         std::string trading_robot_work_log_file = "logger/trading_robot_work_file.log";
+        std::string trading_robot_work_path = "logger/";
 
         std::string news_sert_file = "curl-ca-bundle.crt";
 
@@ -134,6 +135,10 @@ namespace open_bo_api {
                 if(j["trading_robot"]["work_log_file"] != nullptr) {
                     trading_robot_work_log_file = j["trading_robot"]["work_log_file"];
                 }
+                if(j["trading_robot"]["work_path"] != nullptr) {
+                    trading_robot_work_path = j["trading_robot"]["work_path"];
+                }
+
                 //
                 if(j["history_tester"]["storage_path"] != nullptr) {
                     history_tester_storage_path = j["history_tester"]["storage_path"];
@@ -196,6 +201,30 @@ namespace open_bo_api {
          */
         inline bool check_error() {
             return is_error;
+        }
+
+        std::string get_date_name(const xtime::timestamp_t timestamp) {
+            xtime::DateTime date_time(timestamp);
+            std::string temp;
+            temp += std::to_string(date_time.year);
+            temp += "_";
+            temp += std::to_string(date_time.month);
+            temp += "_";
+            temp += std::to_string(date_time.day);
+            return temp;
+        }
+
+        std::string get_date_name() {
+            return get_date_name(xtime::get_timestamp());
+        }
+
+        std::string get_work_log_file_name() {
+            std::string temp;
+            temp += trading_robot_work_path;
+            temp += "//";
+            temp += get_date_name();
+            temp += ".log";
+            return temp;
         }
     };
 }
