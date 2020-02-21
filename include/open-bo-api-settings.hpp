@@ -189,6 +189,7 @@ namespace open_bo_api {
                 trading_robot_work_log_file = std::string(env_ptr) + "\\" + trading_robot_work_log_file;
 				telegram_sert_file = std::string(env_ptr) + "\\" + telegram_sert_file;
 				telegram_chats_id_file = std::string(env_ptr) + "\\" + telegram_chats_id_file;
+				trading_robot_work_path = std::string(env_ptr) + "\\" + trading_robot_work_path;
             }
         }
 
