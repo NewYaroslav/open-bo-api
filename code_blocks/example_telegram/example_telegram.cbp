@@ -24,6 +24,7 @@
 					<Add directory="../../lib/curl-7.60.0-win64-mingw/include" />
 					<Add directory="../../lib/boost_1_71_0/include/boost-1_71" />
 					<Add directory="../../lib/intrade-bar-api-cpp/include" />
+					<Add directory="../../lib/olymptrade-cpp-api/include" />
 					<Add directory="../../lib/xquotes_history/include" />
 					<Add directory="../../lib/gzip-hpp/include" />
 					<Add directory="../../lib/zlib" />
@@ -62,6 +63,7 @@
 					<Add directory="../../lib/curl-7.60.0-win64-mingw/bin" />
 					<Add directory="../../lib/curl-7.60.0-win64-mingw/include" />
 					<Add directory="../../lib/curl-7.60.0-win64-mingw/lib" />
+					<Add directory="../../lib/olymptrade-cpp-api/include" />
 					<Add directory="../../lib/intrade-bar-api-cpp/include" />
 					<Add directory="../../lib/xquotes_history/include" />
 					<Add directory="../../lib/gzip-hpp/include" />

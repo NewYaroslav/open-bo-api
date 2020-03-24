@@ -231,7 +231,7 @@ int main(int argc, char **argv) {
                         }
 
                         /* открываем сделку */
-                        uint32_t api_bet_id = 0;
+                        uint64_t api_bet_id = 0;
                         int err = intrade_bar_api.open_bo(
                             symbol_name,
                             "RSI",
@@ -299,7 +299,7 @@ int main(int argc, char **argv) {
                         }
 
                         /* открываем сделку */
-                        uint32_t api_bet_id = 0;
+                        uint64_t api_bet_id = 0;
                         int err = intrade_bar_api.open_bo(
                             symbol_name,
                             "RSI",

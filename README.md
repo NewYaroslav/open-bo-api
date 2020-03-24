@@ -52,10 +52,14 @@ git clone --recurse-submodules -j8 https://github.com/NewYaroslav/open-bo-api.gi
 
 ### Шаг №5
 
-Внесите изменения в проект *trading_robot_template, trading_robot_template_with_mt4* или *trading_robot_template_with_mt4_2*  под ваши нужды. Библиотека *xtechnical_analysis* содержит индикаторы, корреляцию и статистические показатели. Конечно же можно использовать и другие библиотеки, такие как [ta-lib](http://www.ta-lib.org/)
-Проект *trading_robot_template_with_mt4_2* использует поток котировок от MetaTrader4, остальные проекты используют поток котировок брокера.
+Внесите изменения в проект *trading_robot_template, trading_robot_template_with_mt4*, *trading_robot_template_with_mt4_2* и другие под ваши нужды. 
+Библиотека *xtechnical_analysis* содержит индикаторы, корреляцию и статистические показатели. Конечно же можно использовать и другие библиотеки, такие как [ta-lib](http://www.ta-lib.org/)
 
-Пример *trading_robot_template_bb* просто показывает, как можно обрабатывать сразу массив индикаторов.
+- Проект *trading_robot_template_with_mt4_2* использует поток котировок от MetaTrader4, остальные проекты используют поток котировок брокера.
+
+- Пример *trading_robot_template_bb* просто показывает, как можно обрабатывать сразу массив индикаторов.
+
+- Пример *intradebar_olymptrade_template_rsi* торгует по сигналам RSI сразу на двух брокерах, выбирая наилучшие условия
 
 ### Шаг №6
 

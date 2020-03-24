@@ -99,4 +99,4 @@ namespace open_bo_api {
 };
 
 
-#endif // OPEN-BO-API-COMMAND-LINE-TOOLS_HPP_INCLUDED
+#endif // OPEN_BO_API_COMMAND_LINE_TOOLS_HPP_INCLUDED

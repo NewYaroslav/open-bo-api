@@ -54,8 +54,13 @@ namespace open_bo_api {
         uint32_t intrade_bar_number_bars = 100; /**< количество баров м1 для инициализации исторических данных */
         bool is_intrade_bar_demo_account = true;
         bool is_intrade_bar_rub_currency = true;
+        bool is_intrade_bar = false;
 
-        uint32_t mt_bridge_port = 5555; /**< Порт "Моста" для подключения к MetaTrader4 */
+        uint32_t olymp_trade_port = 8080;   /**< Порт сервера для подключения к расширению брокера Olymptrade */
+        bool is_olymp_trade_demo_account = true;
+        bool is_olymp_trade = false;
+
+        uint32_t mt_bridge_port = 5555;     /**< Порт "Моста" для подключения к MetaTrader4 */
 
         std::string telegram_token;
         std::string telegram_proxy;
@@ -131,6 +136,21 @@ namespace open_bo_api {
                 if(j["intrade_bar"]["number_bars"] != nullptr) {
                     intrade_bar_number_bars = j["intrade_bar"]["number_bars"];
                 }
+                if(j["intrade_bar"]["use"] != nullptr) {
+                    is_intrade_bar = j["intrade_bar"]["use"];
+                }
+
+                //
+                if(j["olymp_trade"]["port"] != nullptr) {
+                    olymp_trade_port = j["olymp_trade"]["port"];
+                }
+                if(j["olymp_trade"]["demo_account"] != nullptr) {
+                    is_olymp_trade_demo_account = j["olymp_trade"]["demo_account"];
+                }
+                if(j["olymp_trade"]["use"] != nullptr) {
+                    is_olymp_trade = j["olymp_trade"]["use"];
+                }
+
                 //
                 if(j["trading_robot"]["work_log_file"] != nullptr) {
                     trading_robot_work_log_file = j["trading_robot"]["work_log_file"];

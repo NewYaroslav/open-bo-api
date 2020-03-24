@@ -21,15 +21,8 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 */
-#ifndef OPEN_BO_API_HPP_INCLUDED
-#define OPEN_BO_API_HPP_INCLUDED
-
-#include "open-bo-api-news.hpp"
-#include "open-bo-api-settings.hpp"
-#include "open-bo-api-indicators.hpp"
-#include "open-bo-api-command-line-tools.hpp"
-#include "open-bo-api-brokers.hpp"
-#include "open-bo-api-competition.hpp"
+#ifndef OPEN_BO_API_BROKERS_HPP_INCLUDED
+#define OPEN_BO_API_BROKERS_HPP_INCLUDED
 
 /* брокер intrade.bar */
 #include "intrade-bar-common.hpp"
@@ -42,10 +35,9 @@
 #include <mt-bridge.hpp>
 
 namespace open_bo_api {
-#if(0)
-    using json = nlohmann::json;
-    using Candle = xquotes_common::Candle;
-    using Logger = intrade_bar::Logger;
+    //using json = nlohmann::json;
+    //using Candle = xquotes_common::Candle;
+    //using Logger = intrade_bar::Logger;
 
     typedef mt_bridge::MetatraderBridge<xquotes_common::Candle> MtBridge;   /**< Класс Моста между Metatrader и программой со стандартным классом для хранения баров */
 
@@ -98,6 +90,7 @@ namespace open_bo_api {
         inline const static std::vector<std::string> get_list_symbols() {
             return std::vector<std::string>(intrade_bar_common::currency_pairs.begin(),intrade_bar_common::currency_pairs.end());
         }
+
 #if(0)
         /** \brief Получить процент выплат
          *
@@ -123,6 +116,7 @@ namespace open_bo_api {
             return 0.0;
         }
 #endif
+
          /** \brief Получитьабсолютный размер ставки и процент выплат
           *
           * Проценты выплат варьируются обычно от 0 до 1.0, где 1.0 соответствует 100% выплате брокера
@@ -160,7 +154,6 @@ namespace open_bo_api {
                 attenuator);
         }
     };
-#endif
 };
 
-#endif // OPEN_BO_API_HPP_INCLUDED
+#endif // OPEN_BO_API_BROKERS_HPP_INCLUDED
