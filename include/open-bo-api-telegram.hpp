@@ -211,6 +211,7 @@ namespace open_bo_api {
             curl_easy_setopt(curl, CURLOPT_POST, 0);
             curl_easy_setopt(curl, CURLOPT_SSLVERSION, CURL_SSLVERSION_MAX_DEFAULT);
             curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+			curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
             curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
             curl_easy_setopt(curl, CURLOPT_CAINFO, sert_file.c_str());
             curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, error_buffer);
