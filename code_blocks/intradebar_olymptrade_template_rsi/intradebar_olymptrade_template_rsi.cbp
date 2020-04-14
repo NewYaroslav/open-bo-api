@@ -107,6 +107,7 @@
 		<Unit filename="../../lib/intrade-bar-api-cpp/include/intrade-bar-common.hpp" />
 		<Unit filename="../../lib/intrade-bar-api-cpp/include/intrade-bar-https-api.hpp" />
 		<Unit filename="../../lib/intrade-bar-api-cpp/include/intrade-bar-logger.hpp" />
+		<Unit filename="../../lib/intrade-bar-api-cpp/include/intrade-bar-websocket-api-v2.hpp" />
 		<Unit filename="../../lib/intrade-bar-api-cpp/include/intrade-bar-websocket-api.hpp" />
 		<Unit filename="../../lib/olymptrade-cpp-api/include/olymp-trade-api-common.hpp" />
 		<Unit filename="../../lib/olymptrade-cpp-api/include/olymp-trade-api.hpp" />

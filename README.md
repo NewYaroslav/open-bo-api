@@ -55,6 +55,7 @@ git clone --recurse-submodules -j8 https://github.com/NewYaroslav/open-bo-api.gi
 Внесите изменения в проект *trading_robot_template, trading_robot_template_with_mt4*, *trading_robot_template_with_mt4_2* и другие под ваши нужды. 
 
 **НЕ ЗАБУДЬТЕ ПОМЕНЯТЬ КОМПИЛЯТОР ПРОЕКТА! ПО УМОЛЧАНИЮ ПРОЕКТЫ СОБИРАЮТСЯ КОМПИЛЯТОРОМ С ИМЕНЕМ *mingw_64_7_3_0*, а не стандартным GNU!**
+![doc/instruction/example_6.png](doc/instruction/example_6.png)
 
 Используйте библиотеки, подключенные как субмодули. К примеру, библиотека *xtechnical_analysis* содержит индикаторы, корреляцию и статистические показатели. Конечно же можно использовать и другие библиотеки, такие как [ta-lib](http://www.ta-lib.org/)
 

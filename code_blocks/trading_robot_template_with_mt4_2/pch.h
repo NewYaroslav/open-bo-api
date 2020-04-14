@@ -42,7 +42,7 @@
 #include <intrade-bar-api.hpp>
 #include <intrade-bar-payout-model.hpp>
 #include <intrade-bar-https-api.hpp>
-#include <intrade-bar-websocket-api.hpp>
+#include <intrade-bar-websocket-api-v2.hpp>
 
 #include <mt-bridge.hpp>
 

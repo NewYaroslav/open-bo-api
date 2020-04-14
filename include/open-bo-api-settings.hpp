@@ -39,11 +39,15 @@ namespace open_bo_api {
         std::string environmental_variable;
         std::string json_file_name; /**< Имя JSON файла */
 
+        /* настройки торгового робота */
         std::string trading_robot_work_log_file = "logger/trading_robot_work_file.log";
         std::string trading_robot_work_path = "logger/";
+        double trading_robot_absolute_stop_loss = 0.0;
+        double trading_robot_relative_stop_loss = 0.0;
 
         std::string news_sert_file = "curl-ca-bundle.crt";
 
+        /* настройки для брокера intrade.bar */
         std::string intrade_bar_sert_file = "curl-ca-bundle.crt";
         std::string intrade_bar_cookie_file = "cookie/intrade-bar.cookie";
         std::string intrade_bar_bets_log_file = "logger/intrade-bar-bets.log";
@@ -56,12 +60,14 @@ namespace open_bo_api {
         bool is_intrade_bar_rub_currency = true;
         bool is_intrade_bar = false;
 
+        /* настройки для брокера olymp trade */
         uint32_t olymp_trade_port = 8080;   /**< Порт сервера для подключения к расширению брокера Olymptrade */
         bool is_olymp_trade_demo_account = true;
         bool is_olymp_trade = false;
 
         uint32_t mt_bridge_port = 5555;     /**< Порт "Моста" для подключения к MetaTrader4 */
 
+        /* настройки для telegram */
         std::string telegram_token;
         std::string telegram_proxy;
         std::string telegram_proxy_pwd;
@@ -157,6 +163,15 @@ namespace open_bo_api {
                 }
                 if(j["trading_robot"]["work_path"] != nullptr) {
                     trading_robot_work_path = j["trading_robot"]["work_path"];
+                }
+                if(j["trading_robot"]["absolute_stop_loss"] != nullptr) {
+                    trading_robot_absolute_stop_loss = j["trading_robot"]["absolute_stop_loss"];
+                }
+                if(j["trading_robot"]["relative_stop_loss"] != nullptr) {
+                    trading_robot_relative_stop_loss = j["trading_robot"]["relative_stop_loss"];
+                }
+                if(j["trading_robot"]["relative_stop_loss"] != nullptr) {
+                    trading_robot_relative_stop_loss = j["trading_robot"]["relative_stop_loss"];
                 }
 
                 //
