@@ -44,6 +44,7 @@ namespace open_bo_api {
         std::string trading_robot_work_path = "logger/";
         double trading_robot_absolute_stop_loss = 0.0;
         double trading_robot_relative_stop_loss = 0.0;
+        double trading_robot_balance_offset = 0.0;
 
         std::string news_sert_file = "curl-ca-bundle.crt";
 
@@ -170,8 +171,8 @@ namespace open_bo_api {
                 if(j["trading_robot"]["relative_stop_loss"] != nullptr) {
                     trading_robot_relative_stop_loss = j["trading_robot"]["relative_stop_loss"];
                 }
-                if(j["trading_robot"]["relative_stop_loss"] != nullptr) {
-                    trading_robot_relative_stop_loss = j["trading_robot"]["relative_stop_loss"];
+                if(j["trading_robot"]["balance_offset"] != nullptr) {
+                    trading_robot_balance_offset = j["trading_robot"]["balance_offset"];
                 }
 
                 //
@@ -215,16 +216,16 @@ namespace open_bo_api {
                     is_error = true;
                     return;
                 }
-                news_sert_file = std::string(env_ptr) + "\\" + news_sert_file;
-                intrade_bar_sert_file = std::string(env_ptr) + "\\" + intrade_bar_sert_file;
-                intrade_bar_cookie_file = std::string(env_ptr) + "\\" + intrade_bar_cookie_file;
-                intrade_bar_bets_log_file = std::string(env_ptr) + "\\" + intrade_bar_bets_log_file;
-                intrade_bar_work_log_file = std::string(env_ptr) + "\\" + intrade_bar_work_log_file;
-                intrade_bar_websocket_log_file = std::string(env_ptr) + "\\" + intrade_bar_websocket_log_file;
-                trading_robot_work_log_file = std::string(env_ptr) + "\\" + trading_robot_work_log_file;
-				telegram_sert_file = std::string(env_ptr) + "\\" + telegram_sert_file;
-				telegram_chats_id_file = std::string(env_ptr) + "\\" + telegram_chats_id_file;
-				trading_robot_work_path = std::string(env_ptr) + "\\" + trading_robot_work_path;
+                news_sert_file = std::string(env_ptr) + "/" + news_sert_file;
+                intrade_bar_sert_file = std::string(env_ptr) + "/" + intrade_bar_sert_file;
+                intrade_bar_cookie_file = std::string(env_ptr) + "/" + intrade_bar_cookie_file;
+                intrade_bar_bets_log_file = std::string(env_ptr) + "/" + intrade_bar_bets_log_file;
+                intrade_bar_work_log_file = std::string(env_ptr) + "/" + intrade_bar_work_log_file;
+                intrade_bar_websocket_log_file = std::string(env_ptr) + "/" + intrade_bar_websocket_log_file;
+                trading_robot_work_log_file = std::string(env_ptr) + "/" + trading_robot_work_log_file;
+				telegram_sert_file = std::string(env_ptr) + "/" + telegram_sert_file;
+				telegram_chats_id_file = std::string(env_ptr) + "/" + telegram_chats_id_file;
+				trading_robot_work_path = std::string(env_ptr) + "/" + trading_robot_work_path;
             }
         }
 
@@ -257,7 +258,7 @@ namespace open_bo_api {
         std::string get_work_log_file_name() {
             std::string temp;
             temp += trading_robot_work_path;
-            temp += "//";
+            temp += "/";
             temp += get_date_name();
             temp += ".log";
             return temp;
