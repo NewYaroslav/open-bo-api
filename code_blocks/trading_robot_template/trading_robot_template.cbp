@@ -84,7 +84,9 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<Unit filename="../../include/open-bo-api-brokers.hpp" />
 		<Unit filename="../../include/open-bo-api-command-line-tools.hpp" />
+		<Unit filename="../../include/open-bo-api-competition.hpp" />
 		<Unit filename="../../include/open-bo-api-indicators.hpp" />
 		<Unit filename="../../include/open-bo-api-news.hpp" />
 		<Unit filename="../../include/open-bo-api-settings.hpp" />

@@ -81,8 +81,9 @@ namespace open_bo_api {
             auto it_src = candles_src.find(symbols[symbol]);
             auto it_add = candles_add.find(symbols[symbol]);
             if(it_src == candles_src.end() && it_add == candles_add.end()) continue;
-            if(it_src->second.timestamp != it_add->second.timestamp) continue;
             output_candles[symbols[symbol]] = it_src->second;
+            if(it_add == candles_add.end()) continue;
+            if(it_src->second.timestamp != it_add->second.timestamp) continue;
             auto it_new = output_candles.find(symbols[symbol]);
             it_new->second.close = it_src->second.close != 0.0 ? it_src->second.close : it_add->second.close != 0.0 ? it_add->second.close : 0.0;
             it_new->second.high = it_src->second.high != 0.0 ? it_src->second.high : it_add->second.high != 0.0 ? it_add->second.high : 0.0;
