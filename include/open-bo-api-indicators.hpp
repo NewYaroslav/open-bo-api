@@ -65,7 +65,7 @@ namespace open_bo_api {
     /** \brief Функция для слияния данных свечей
      *
      * Данная функция мозволяет соединить данные из разных источников.
-     * Недостабщие данные в candles_src будут добавлены из candles_add.
+     * Недостающие данные в candles_src будут добавлены из candles_add.
      * \param symbols Массивы символов
      * \param candles_src Приритетный контейнер с данными. Ключ - имя символа, значение - бар/свеча
      * \param candles_add Второстепенный контейнер с данными. Ключ - имя символа, значение - бар/свеча
@@ -90,7 +90,34 @@ namespace open_bo_api {
             it_new->second.low = it_src->second.low != 0.0 ? it_src->second.low : it_add->second.low != 0.0 ? it_add->second.low : 0.0;
             it_new->second.open = it_src->second.open != 0.0 ? it_src->second.open : it_add->second.open != 0.0 ? it_add->second.open : 0.0;
             it_new->second.volume = it_src->second.volume != 0.0 ? it_src->second.volume : it_add->second.volume != 0.0 ? it_add->second.volume : 0.0;
-            it_new->second.timestamp = it_src->second.timestamp;
+            it_new->second.timestamp = it_src->second.timestamp != 0 ? it_src->second.timestamp : it_add->second.timestamp != 0 ? it_add->second.timestamp : 0;
+        }
+    }
+
+    /** \brief Функция для слияния данных свечей только по объему
+     *
+     * Данная функция мозволяет соединить данные из разных источников.
+     * Недостающие данные в candles_src будут добавлены из candles_add.
+     * \param symbols Массивы символов
+     * \param candles_src Приритетный контейнер с данными. Ключ - имя символа, значение - бар/свеча
+     * \param candles_add Второстепенный контейнер с данными. Ключ - имя символа, значение - бар/свеча
+     * \param output_candles Контейнер с конечными данными
+     */
+    template<class SYMBOLS_TYPE, class CANDLE_TYPE>
+    void merge_candles_only_volume(
+            const SYMBOLS_TYPE &symbols,
+            const std::map<std::string, CANDLE_TYPE> &candles_src,
+            const std::map<std::string, CANDLE_TYPE> &candles_add,
+            std::map<std::string, CANDLE_TYPE> &output_candles) {
+        for(uint32_t symbol = 0; symbol < symbols.size(); ++symbol) {
+            auto it_src = candles_src.find(symbols[symbol]);
+            auto it_add = candles_add.find(symbols[symbol]);
+            if(it_src == candles_src.end() && it_add == candles_add.end()) continue;
+            output_candles[symbols[symbol]] = it_src->second;
+            if(it_add == candles_add.end()) continue;
+            if(it_src->second.timestamp != it_add->second.timestamp) continue;
+            auto it_new = output_candles.find(symbols[symbol]);
+            it_new->second.volume = it_src->second.volume != 0.0 ? it_src->second.volume : it_add->second.volume != 0.0 ? it_add->second.volume : 0.0;
         }
     }
 
@@ -167,7 +194,7 @@ namespace open_bo_api {
 
     /** \brief Обновить состояние индикаторов
      *
-     * Данная функция сама очистить состояние индикатора, если поток цен был прерван
+     * Данная функция сама очистит состояние индикатора, если поток цен был прерван
      * Также данная функция запишет NAN, если индикатор не был инициализирован
      * \param input Массив входящих данных
      * \param output Массив выходящих данных
@@ -212,6 +239,69 @@ namespace open_bo_api {
                     break;
                 case TypePriceIndicator::VOLUME:
                     if(it->second.volume != 0) err = indicators[symbols[symbol]][parameters[parameter]].update(it->second.volume, output[symbols[symbol]][parameters[parameter]]);
+                    else indicators[symbols[symbol]][parameters[parameter]].clear();
+                    break;
+                }
+                if(err != xtechnical_common::OK) {
+                    output[symbols[symbol]][parameters[parameter]] = std::numeric_limits<double>::quiet_NaN();
+                }
+            }
+        }
+    }
+
+    /** \brief Обновить состояние индикаторов, содержащих EMA
+     *
+     * Данная функция сама очистит состояние индикатора, если поток цен был прерван
+     * Также данная функция запишет NAN, если индикатор не был инициализирован
+     * \param input Массив входящих данных
+     * \param output Массив выходящих данных
+     * \param symbols Массивы символов
+     * \param parameters Массивы параметров
+     * \param offset_parameters_m1 Массив параметра смещения времени инициализации для графика м1
+     * Данный параметр указывает, за сколько минут до начала дня по UTC индикатор может начать свою работу
+     * \param indicators Массив индикаторов
+     * \param type Тип цены
+     */
+    template<class CANDLE_TYPE,
+            class SYMBOLS_TYPE,
+            class INDICATORS_TYPE>
+    void update_indicators_witch_ema(
+            const std::map<std::string, CANDLE_TYPE> &input,
+            std::map<std::string, std::map<uint32_t, double>> &output,
+            const SYMBOLS_TYPE &symbols,
+            const std::vector<uint32_t> &parameters,
+            const std::vector<uint32_t> &offset_parameters_m1,
+            INDICATORS_TYPE &indicators,
+            const TypePriceIndicator type) {
+        for(uint32_t symbol = 0; symbol < symbols.size(); ++symbol) {
+            auto it = input.find(symbols[symbol]);
+            if(it == input.end()) continue;
+            for(uint32_t parameter = 0;
+                parameter < parameters.size();
+                ++parameter) {
+                const xtime::timestamp_t start_time = xtime::get_first_timestamp_day(it->second.timestamp) - (offset_parameters_m1[parameter] * xtime::SECONDS_IN_MINUTE);
+                const xtime::timestamp_t candle_time = xtime::get_first_timestamp_minute(it->second.timestamp);
+
+                int err = xtechnical_common::NO_INIT;
+                switch(type) {
+                case TypePriceIndicator::OPEN:
+                    if(it->second.open != 0 && candle_time >= start_time) err = indicators[symbols[symbol]][parameters[parameter]].update(it->second.open, output[symbols[symbol]][parameters[parameter]]);
+                    else indicators[symbols[symbol]][parameters[parameter]].clear();
+                    break;
+                case TypePriceIndicator::HIGH:
+                    if(it->second.high != 0 && candle_time >= start_time) err = indicators[symbols[symbol]][parameters[parameter]].update(it->second.high, output[symbols[symbol]][parameters[parameter]]);
+                    else indicators[symbols[symbol]][parameters[parameter]].clear();
+                    break;
+                case TypePriceIndicator::LOW:
+                    if(it->second.low != 0 && candle_time >= start_time) err = indicators[symbols[symbol]][parameters[parameter]].update(it->second.low, output[symbols[symbol]][parameters[parameter]]);
+                    else indicators[symbols[symbol]][parameters[parameter]].clear();
+                    break;
+                case TypePriceIndicator::CLOSE:
+                    if(it->second.close != 0 && candle_time >= start_time) err = indicators[symbols[symbol]][parameters[parameter]].update(it->second.close, output[symbols[symbol]][parameters[parameter]]);
+                    else indicators[symbols[symbol]][parameters[parameter]].clear();
+                    break;
+                case TypePriceIndicator::VOLUME:
+                    if(it->second.volume != 0 && candle_time >= start_time) err = indicators[symbols[symbol]][parameters[parameter]].update(it->second.volume, output[symbols[symbol]][parameters[parameter]]);
                     else indicators[symbols[symbol]][parameters[parameter]].clear();
                     break;
                 }
