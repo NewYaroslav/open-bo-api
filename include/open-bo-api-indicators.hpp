@@ -341,23 +341,18 @@ namespace open_bo_api {
                 switch(type) {
                 case TypePriceIndicator::OPEN:
                     if(it->second.open != 0) err = indicators[symbols[symbol]][parameters[parameter]].test(it->second.open, output[symbols[symbol]][parameters[parameter]]);
-                    else indicators[symbols[symbol]][parameters[parameter]].clear();
                     break;
                 case TypePriceIndicator::HIGH:
                     if(it->second.high != 0) err = indicators[symbols[symbol]][parameters[parameter]].test(it->second.high, output[symbols[symbol]][parameters[parameter]]);
-                    else indicators[symbols[symbol]][parameters[parameter]].clear();
                     break;
                 case TypePriceIndicator::LOW:
                     if(it->second.low != 0) err = indicators[symbols[symbol]][parameters[parameter]].test(it->second.low, output[symbols[symbol]][parameters[parameter]]);
-                    else indicators[symbols[symbol]][parameters[parameter]].clear();
                     break;
                 case TypePriceIndicator::CLOSE:
                     if(it->second.close != 0) err = indicators[symbols[symbol]][parameters[parameter]].test(it->second.close, output[symbols[symbol]][parameters[parameter]]);
-                    else indicators[symbols[symbol]][parameters[parameter]].clear();
                     break;
                 case TypePriceIndicator::VOLUME:
                     if(it->second.volume != 0) err = indicators[symbols[symbol]][parameters[parameter]].test(it->second.volume, output[symbols[symbol]][parameters[parameter]]);
-                    else indicators[symbols[symbol]][parameters[parameter]].clear();
                     break;
                 }
                 if(err != xtechnical_common::OK) {
@@ -586,35 +581,30 @@ namespace open_bo_api {
                             output_1[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]],
                             output_2[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]],
                             output_3[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]]);
-                        else indicators[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]].clear();
                         break;
                     case TypePriceIndicator::HIGH:
                         if(it->second.high != 0) err = indicators[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]].test(it->second.high,
                             output_1[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]],
                             output_2[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]],
                             output_3[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]]);
-                        else indicators[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]].clear();
                         break;
                     case TypePriceIndicator::LOW:
                         if(it->second.low != 0) err = indicators[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]].test(it->second.low,
                             output_1[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]],
                             output_2[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]],
                             output_3[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]]);
-                        else indicators[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]].clear();
                         break;
                     case TypePriceIndicator::CLOSE:
                         if(it->second.close != 0) err = indicators[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]].test(it->second.close,
                             output_1[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]],
                             output_2[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]],
                             output_3[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]]);
-                        else indicators[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]].clear();
                         break;
                     case TypePriceIndicator::VOLUME:
                         if(it->second.volume != 0) err = indicators[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]].test(it->second.volume,
                             output_1[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]],
                             output_2[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]],
                             output_3[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]]);
-                        else indicators[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]].clear();
                         break;
                     }
                     if(err != xtechnical_common::OK) {
