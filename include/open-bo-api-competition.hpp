@@ -105,7 +105,8 @@ namespace open_bo_api {
                 is_rub,
                 balance,
                 winrate,
-                attenuator);
+                attenuator,
+                settings.trading_robot_payout_limiter);
 
         if ((settings.is_olymp_trade && second >= 58) ||
             (!settings.is_olymp_trade && second == 59)) {
@@ -119,7 +120,8 @@ namespace open_bo_api {
                     is_rub,
                     balance,
                     winrate,
-                    attenuator);
+                    attenuator,
+                    settings.trading_robot_payout_limiter);
         }
 
         double olymp_trade_amount = 0, olymp_trade_payout = 0;
@@ -131,7 +133,8 @@ namespace open_bo_api {
                 duration,
                 balance,
                 winrate,
-                attenuator);
+                attenuator,
+                settings.trading_robot_payout_limiter);
 
         const double intrade_bar_balance = intrade_bar.get_balance();
         const double olymp_trade_balance = olymp_trade.get_balance();

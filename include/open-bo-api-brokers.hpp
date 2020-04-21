@@ -61,6 +61,7 @@ namespace open_bo_api {
          * \param balance Размер баланса
          * \param winrate Винрейт стратегии
          * \param attenuator Ослабление коэффициента Келли, желательно использовать значения не боьше 0.4
+         * \param payout_limiter Ограничитель процента выплат (по умолчанию не используется)
          * \return состояние выплаты (0 в случае успеха, иначе см. payout_model::IntradeBar::PayoutCancelType)
          */
         inline const static int get_amount(
@@ -71,8 +72,10 @@ namespace open_bo_api {
                 const uint32_t duration,
                 const double balance,
                 const double winrate,
-                const double attenuator) {
-            return api.get_amount(amount, payout, symbol_name, duration, balance, winrate, attenuator);
+                const double attenuator,
+                const double payout_limiter = 1.0) {
+            return api.get_amount(amount, payout, symbol_name, duration,
+                balance, winrate, attenuator, payout_limiter);
         }
     };
 
@@ -129,6 +132,7 @@ namespace open_bo_api {
           * \param balance Размер баланса
           * \param winrate Винрейт стратегии
           * \param attenuator Ослабление коэффициента Келли, желательно использовать значения не боьше 0.4
+          * \param payout_limiter Ограничитель процента выплат (по умолчанию не используется)
           * \return состояние выплаты (0 в случае успеха, иначе см. payout_model::IntradeBar::PayoutCancelType)
           */
         inline const static int get_amount(
@@ -140,7 +144,8 @@ namespace open_bo_api {
                 const bool is_rub,
                 const double balance,
                 const double winrate,
-                const double attenuator) {
+                const double attenuator,
+                const double payout_limiter = 1.0) {
             payout_model::IntradeBar pm;
             pm.set_rub_account_currency(is_rub);
             return pm.get_amount(
@@ -151,7 +156,8 @@ namespace open_bo_api {
                 duration,
                 balance,
                 winrate,
-                attenuator);
+                attenuator,
+                payout_limiter);
         }
     };
 };

@@ -42,10 +42,12 @@ namespace open_bo_api {
         /* настройки торгового робота */
         std::string trading_robot_work_log_file = "logger/trading_robot_work_file.log";
         std::string trading_robot_work_path = "logger/";
-        double trading_robot_absolute_stop_loss = 0.0;
+        double trading_robot_absolute_stop_loss = 0.0;  /**< Абсолютный стоп-лосс. Если депозит опустится ниже данного значения, робот может перестать торговать */
         double trading_robot_relative_stop_loss = 0.0;
-        double trading_robot_balance_offset = 0.0;
+        double trading_robot_balance_offset = 0.0;  /**< Смещение баланса. Данный параметр смещает уровень баланса на указанное число. Это может быть полезно, когда часть депозита лежит не у брокера */
+        double trading_robot_payout_limiter = 1.0;  /**< Ограничитель процентов выплат. Это влияет на формулы расчета ставок, они не будут считать ставку выше, чем для данной выплаты */
 
+        /* настройки новостей */
         std::string news_sert_file = "curl-ca-bundle.crt";
 
         /* настройки для брокера intrade.bar */
@@ -173,6 +175,9 @@ namespace open_bo_api {
                 }
                 if(j["trading_robot"]["balance_offset"] != nullptr) {
                     trading_robot_balance_offset = j["trading_robot"]["balance_offset"];
+                }
+                if(j["trading_robot"]["payout_limiter"] != nullptr) {
+                    trading_robot_payout_limiter = j["trading_robot"]["payout_limiter"];
                 }
 
                 //
