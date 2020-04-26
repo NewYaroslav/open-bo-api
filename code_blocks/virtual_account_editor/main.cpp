@@ -22,7 +22,7 @@
 
 #define PROGRAM_VERSION "1.0"
 #define PROGRAM_DATE "26.04.2020"
-#define NDEBUG
+//#define NDEBUG
 
 static void HelpMarker(const char* desc);
 const std::string ini_file_name("va_editor.json");
