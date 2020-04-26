@@ -49,3 +49,15 @@
 [submodule "lib/olymptrade-cpp-api"]
 	path = lib/olymptrade-cpp-api
 	url = https://github.com/NewYaroslav/olymptrade-cpp-api.git
+[submodule "lib/imgui"]
+	path = lib/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "lib/imgui-sfml"]
+	path = lib/imgui-sfml
+	url = https://github.com/eliasdaler/imgui-sfml.git
+[submodule "lib/fontaudio"]
+	path = lib/fontaudio
+	url = https://github.com/fefanto/fontaudio.git
+[submodule "lib/IconFontCppHeaders"]
+	path = lib/IconFontCppHeaders
+	url = https://github.com/juliettef/IconFontCppHeaders.git

@@ -1,0 +1,5 @@
+#include "ico.h"
+#include "windows.h"
+
+ROCKETX_ICON ICON "icon//va-256x256.ico"
+ROCKETX_ICON32 ICON "icon//va-32x32.ico"
