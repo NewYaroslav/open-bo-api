@@ -61,14 +61,15 @@ namespace open_bo_api {
         uint32_t intrade_bar_number_bars = 100; /**< количество баров м1 для инициализации исторических данных */
         bool is_intrade_bar_demo_account = true;
         bool is_intrade_bar_rub_currency = true;
-        bool is_intrade_bar = false;
+        bool is_intrade_bar = false;        /**< Флаг использования брокера intrade.bar */
 
         /* настройки для брокера olymp trade */
         uint32_t olymp_trade_port = 8080;   /**< Порт сервера для подключения к расширению брокера Olymptrade */
         bool is_olymp_trade_demo_account = true;
-        bool is_olymp_trade = false;
+        bool is_olymp_trade = false;        /**< Флаг использования брокера olymptrade */
 
         uint32_t mt_bridge_port = 5555;     /**< Порт "Моста" для подключения к MetaTrader4 */
+        bool is_mt_bridge = true;           /**< Флаг использования "моста" для подключения к MetaTrader4 */
 
         /* настройки для telegram */
         std::string telegram_token;
@@ -109,6 +110,9 @@ namespace open_bo_api {
                 //
                 if(j["mt_bridge"]["port"] != nullptr) {
                     mt_bridge_port = j["mt_bridge"]["port"];
+                }
+                if(j["mt_bridge"]["use"] != nullptr) {
+                    is_mt_bridge = j["mt_bridge"]["use"];
                 }
                 //
                 if(j["news"]["sert_file"] != nullptr) {
