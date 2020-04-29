@@ -58,10 +58,12 @@ namespace open_bo_api {
         std::string intrade_bar_websocket_log_file = "logger/intrade-bar-websocket.log";
         std::string intrade_bar_email;
         std::string intrade_bar_password;
-        uint32_t intrade_bar_number_bars = 100; /**< количество баров м1 для инициализации исторических данных */
-        bool is_intrade_bar_demo_account = true;
-        bool is_intrade_bar_rub_currency = true;
-        bool is_intrade_bar = false;        /**< Флаг использования брокера intrade.bar */
+        uint32_t intrade_bar_number_bars = 100;         /**< количество баров м1 для инициализации исторических данных */
+        bool is_intrade_bar_demo_account = true;        /**< Флаг использования демо счета */
+        bool is_intrade_bar_rub_currency = true;        /**< Флаг использования рублевого счета */
+        bool is_intrade_bar_open_equal_close = true;    /**< Флаг, по умолчанию true. Если флаг установлен, то цена открытия бара равна цене закрытия предыдущего бара */
+        bool is_intrade_bar_merge_hist_witch_stream = false;    /**< Флаг, по умолчанию false. Если флаг установлен, то исторический бар будет слит с баром из потока котировок для события обновления исторических цен. Это повышает стабильность потока исторических цен */
+        bool is_intrade_bar = false;                    /**< Флаг использования брокера intrade.bar */
 
         /* настройки для брокера olymp trade */
         uint32_t olymp_trade_port = 8080;   /**< Порт сервера для подключения к расширению брокера Olymptrade */
@@ -118,7 +120,8 @@ namespace open_bo_api {
                 if(j["news"]["sert_file"] != nullptr) {
                     news_sert_file = j["news"]["sert_file"];
                 }
-                //
+
+                /* загрузим настройки для брокера intrade.bar */
                 if(j["intrade_bar"]["email"] != nullptr) {
                     intrade_bar_email = j["intrade_bar"]["email"];
                 }
@@ -149,11 +152,17 @@ namespace open_bo_api {
                 if(j["intrade_bar"]["number_bars"] != nullptr) {
                     intrade_bar_number_bars = j["intrade_bar"]["number_bars"];
                 }
+                if(j["intrade_bar"]["open_equal_close"] != nullptr) {
+                    is_intrade_bar_open_equal_close = j["intrade_bar"]["open_equal_close"];
+                }
+                if(j["intrade_bar"]["merge_hist_witch_stream"] != nullptr) {
+                    is_intrade_bar_merge_hist_witch_stream = j["intrade_bar"]["merge_hist_witch_stream"];
+                }
                 if(j["intrade_bar"]["use"] != nullptr) {
                     is_intrade_bar = j["intrade_bar"]["use"];
                 }
 
-                //
+                /* загрузим настройки для брокера olymp trade */
                 if(j["olymp_trade"]["port"] != nullptr) {
                     olymp_trade_port = j["olymp_trade"]["port"];
                 }

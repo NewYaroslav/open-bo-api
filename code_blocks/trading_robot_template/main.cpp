@@ -343,7 +343,9 @@ int main(int argc, char **argv) {
     settings.intrade_bar_cookie_file,
     settings.intrade_bar_bets_log_file,
     settings.intrade_bar_work_log_file,
-    settings.intrade_bar_websocket_log_file);
+    settings.intrade_bar_websocket_log_file,
+    settings.is_intrade_bar_open_equal_close,
+    settings.is_intrade_bar_merge_hist_witch_stream);
 
     /* подключаемся к брокеру, чтобы можно было совершать сделки */
     int err_connect = intrade_bar_api.connect(
