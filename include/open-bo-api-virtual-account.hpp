@@ -63,6 +63,9 @@ namespace open_bo_api {
         bool demo = true;       /**< Использовать демо-аккаунт */
         bool enabled = false;   /**< Виртуальный аккаунт включен или выключен */
 
+        std::map<uint64_t, std::vector<double>> mem_profit;
+        std::map<uint64_t, std::vector<double>> mem_amount;
+
         VirtualAccount() {};
 
         /** \brief Рассчитать размер ставки
@@ -157,10 +160,6 @@ namespace open_bo_api {
             callback_virtual_accounts[va_id] = va;
         }
 
-
-        std::map<uint64_t, std::vector<double>> account_profit;
-        std::map<uint64_t, std::vector<double>> account_amount;
-
     public:
 
         static int callback(void *userdata, int argc, char **argv, char **key_name) {
@@ -254,21 +253,20 @@ namespace open_bo_api {
             return true;
         }
 
-#if(0)
         /** \brief Проверить баланс виртуальных аккаунтов
          *
          * \param total_balance Общий баланас торговли
+         * \param demo Демо аккаунт
          * \return Вернет true, если баланс виртуальных аккаунтов меньше или равен реальному балансу
          */
-        bool check_balance(const double total_balance) {
+        bool check_balance(const double total_balance, const bool demo) {
             double sum_balance = 0.0d;
-            for(size_t i = 0; i < virtual_accounts.size(); ++i) {
-                sum_balance += virtual_accounts[i].balance;
+            for(auto &it : virtual_accounts) {
+                if(it.second.enabled && it.second.demo == demo) sum_balance += it.second.balance;
             }
             if(sum_balance > total_balance) return false;
             return true;
         }
-#endif
 
         bool add_virtual_account(VirtualAccount &va) {
             if(!db) return false;
@@ -432,7 +430,7 @@ namespace open_bo_api {
             return virtual_accounts;
         }
 
-#if(0)
+
         /** \brief Рассчитать размер ставки
          *
          * \param amount Посчитанный размер ставки
@@ -452,16 +450,18 @@ namespace open_bo_api {
             amount = 0.0d;
             if(virtual_accounts.size() == 0) return false;
             double sum_amount = 0.0d;
-            for(size_t i = 0; i < virtual_accounts.size(); ++i) {
-                double temp_amount = 0.0d;
-                if(virtual_accounts[i].calc_amount(
-                    temp_amount,
-                    strategy_name,
-                    is_demo,
-                    payout,
-                    winrate,
-                    kelly_attenuation)) {
-                    sum_amount += temp_amount;
+            for(auto &it : virtual_accounts) {
+                if(it.second.enabled && it.second.demo == demo) {
+                    double temp_amount = 0.0d;
+                    if(it.second.calc_amount(
+                        temp_amount,
+                        strategy_name,
+                        is_demo,
+                        payout,
+                        winrate,
+                        kelly_attenuation)) {
+                        sum_amount += temp_amount;
+                    }
                 }
             }
             if(sum_amount > 0.0d) {
@@ -495,34 +495,38 @@ namespace open_bo_api {
             /* найдем ставку для каждого аккаунта */
             std::vector<double> temp_amount(virtual_accounts.size(), 0.0d);
             double sum_amount = 0.0d;
-            for(size_t i = 0; i < virtual_accounts.size(); ++i) {
-                if(virtual_accounts[i].calc_amount(
-                    temp_amount[i],
-                    strategy_name,
-                    is_demo,
-                    payout,
-                    winrate,
-                    kelly_attenuation)) {
-                    sum_amount += temp_amount[i];
+            for(auto &it : virtual_accounts) {
+                if(it.second.enabled && it.second.demo == demo) {
+                    double temp = 0.0d;
+                    if(it.second.calc_amount(
+                        temp,
+                        strategy_name,
+                        is_demo,
+                        payout,
+                        winrate,
+                        kelly_attenuation)) {
+                        it.second.mem_amount[id_deal] = temp;
+                        sum_amount += temp;
+                    }
                 }
             }
             if(sum_amount == 0.0d) return false;
+
             /* выведем соотношение от общей ставки для каждого аккаунта */
-            std::vector<double> temp_profit(virtual_accounts.size(), 0.0d);
-            for(size_t i = 0; i < virtual_accounts.size(); ++i) {
-                if(temp_amount[i] == 0.0d) continue;
-                temp_amount[i] = (temp_amount[i] / sum_amount) * amount;
-                virtual_accounts[i].balance -= temp_amount[i];
-                virtual_accounts[i].last_update_date = date;
-                temp_profit[i] = temp_amount[i] * payout;
+            for(auto &it : virtual_accounts) {
+                double temp = it.second.mem_amount[id_deal];
+                if(it.second.enabled && it.second.demo == demo && temp > 0.0d) {
+                    temp = (temp / sum_amount) * amount;
+                    it.second.balance -= temp[i];
+                    it.second.mem_amount[id_deal] = temp;
+                    it.second.mem_profit[id_deal] = temp * payout;
+                    it.second.timestamp = date;
+                }
             }
-            account_amount[id_deal] = temp_amount[i];
-            account_profit[id_deal] = temp_profit[i];
 
             /* обновляем данные в файлах */
             return true;
         }
-
 
         /** \brief Установить выиграш ставки
          *
@@ -530,23 +534,27 @@ namespace open_bo_api {
          * \param date Метка времени даты
          * \return Вернет true в случае успеха
          */
-        bool set_win(const uint64_t id_deal, const xtime::timestamp_t date) {
-            auto it_account_profit = account_profit.find(id_deal);
-            auto it_account_amount = account_amount.find(id_deal);
-            if (it_account_profit == account_profit.end() ||
-                it_account_amount == account_amount.end()) return false;
-
-            for(size_t i = 0; i < virtual_accounts.size(); ++i) {
-                if (it_account_profit->second[i] == 0.0d ||
-                    it_account_amount->second[i] == 0.0d) continue;
-                virtual_accounts[i].balance += it_account_amount->second[i];
-                virtual_accounts[i].balance += it_account_profit->second[i];
-                virtual_accounts[i].last_update_date = date;
+        bool set_win(
+                const uint64_t id_deal,
+                const xtime::timestamp_t date) {
+            bool is_update = false;
+            for(auto &it : virtual_accounts) {
+                double amount = it.second.mem_amount[id_deal];
+                double profit = it.second.mem_profit[id_deal];
+                if(it.second.enabled && amount > 0.0d && profit > 0.0d) {
+                    it.second.balance += amount;
+                    it.second.balance += profit;
+                    it.second.mem_amount.erase(id_deal);
+                    it.second.mem_profit.erase(id_deal);
+                    it.second.timestamp = date;
+                    is_update = true;
+                }
             }
-            account_profit.erase(it_account_profit);
-            account_amount.erase(it_account_amount);
 
             /* обновляем данные в файлах */
+            if(is_update) {
+
+            }
             return true;
         }
 
@@ -556,20 +564,25 @@ namespace open_bo_api {
          * \param date Метка времени даты
          * \return Вернет true в случае успеха
          */
-        bool set_loss(const uint64_t id_deal, const xtime::timestamp_t date) {
-            auto it_account_profit = account_profit.find(id_deal);
-            auto it_account_amount = account_amount.find(id_deal);
-            if (it_account_profit == account_profit.end() ||
-                it_account_amount == account_amount.end()) return false;
-            for(size_t i = 0; i < virtual_accounts.size(); ++i) {
-                if (it_account_profit->second[i] == 0.0d ||
-                    it_account_amount->second[i] == 0.0d) continue;
-                virtual_accounts[i].last_update_date = date;
+        bool set_loss(
+                const uint64_t id_deal,
+                const xtime::timestamp_t date) {
+            bool is_update = false;
+            for(auto &it : virtual_accounts) {
+                double amount = it.second.mem_amount[id_deal];
+                double profit = it.second.mem_profit[id_deal];
+                if(it.second.enabled && amount > 0.0d && profit > 0.0d) {
+                    it.second.timestamp = date;
+                    is_update = true;
+                }
+                it.second.mem_amount.erase(id_deal);
+                it.second.mem_profit.erase(id_deal);
             }
-            account_profit.erase(it_account_profit);
-            account_amount.erase(it_account_amount);
 
             /* обновляем данные в файлах */
+            if(is_update) {
+
+            }
             return true;
         }
 
@@ -579,24 +592,34 @@ namespace open_bo_api {
          * \param date Метка времени даты
          * \return Вернет true в случае успеха
          */
-        bool set_standoff(const uint64_t id_deal, const xtime::timestamp_t date) {
-            auto it_account_profit = account_profit.find(id_deal);
-            auto it_account_amount = account_amount.find(id_deal);
-            if (it_account_profit == account_profit.end() ||
-                it_account_amount == account_amount.end()) return false;
-            for(size_t i = 0; i < virtual_accounts.size(); ++i) {
-                if (it_account_profit->second[i] == 0.0d ||
-                    it_account_amount->second[i] == 0.0d) continue;
-                virtual_accounts[i].balance += it_account_amount->second[i];
-                virtual_accounts[i].last_update_date = date;
+        bool set_standoff(
+                const uint64_t id_deal,
+                const xtime::timestamp_t date) {
+            bool is_update = false;
+            for(auto &it : virtual_accounts) {
+                auto it_amount = it.second.mem_amount.find(id_deal);
+                auto it_profit = it.second.mem_profit.find(id_deal);
+                if(it_amount != it.second.mem_amount.end() && it_profit != it.second.mem_profit.end())
+                if((it_amount != it.second.mem_amount.end() &&
+                    it_profit != it.second.mem_profit.end()) &&
+                    it.second.enabled &&
+                    it_amount.second > 0.0d &&
+                    it_profit.second > 0.0d) {
+                    it.second.balance += it_amount.second;
+                    it.second.timestamp = date;
+                    is_update = true;
+                }
+                if(it_amount != it.second.mem_amount.end()) it.second.mem_amount.erase(id_deal);
+                if(it_profit != it.second.mem_profit.end()) it.second.mem_profit.erase(id_deal);
             }
-            account_profit.erase(it_account_profit);
-            account_amount.erase(it_account_amount);
 
             /* обновляем данные в файлах */
+            if(is_update) {
+
+            }
             return true;
         }
-#endif
+
     };
 };
 

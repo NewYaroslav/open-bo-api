@@ -408,12 +408,24 @@ namespace open_bo_api {
                 json j = json::parse(response);
                 if(j["ok"] != true) return REQUEST_RETURN_ERROR;
                 const size_t result_size = j["result"].size();
-                //std::cout << "result_size " << result_size << std::endl;
+                //std::cout << "result_size: " << result_size << std::endl;
                 for(size_t i = 0; i < result_size; ++i) {
                     int64_t chat_id = j["result"][i]["message"]["chat"]["id"];
-                    //std::cout << chat_id << std::endl;
+                    //std::cout << "chat_id: " << chat_id << std::endl;
                     if(j["result"][i]["message"]["chat"]["type"] == "private") {
-                        std::string username = j["result"][i]["message"]["chat"]["username"];
+                        std::string username;
+                        if(j["result"][i]["message"]["chat"]["username"] != nullptr) {
+                            username = j["result"][i]["message"]["chat"]["username"];
+                        } else
+                        if(j["result"][i]["message"]["chat"]["first_name"] != nullptr) {
+                            username = j["result"][i]["message"]["chat"]["first_name"];
+                            if(j["result"][i]["message"]["chat"]["last_name"] != nullptr) {
+                                username += " ";
+                                username += j["result"][i]["message"]["chat"]["last_name"];
+                            }
+                        } else {
+                            continue;
+                        }
                         {
                             std::lock_guard<std::mutex> lock(chats_id_mutex);
                             chats_id[username] = chat_id;
@@ -426,7 +438,7 @@ namespace open_bo_api {
                             std::lock_guard<std::mutex> lock(chats_id_mutex);
                             chats_id[title] = chat_id;
                         }
-                        //std::cout << title << " id: " << chat_id << std::endl;
+                        //std::cout << "title: " << title << " id: " << chat_id << std::endl;
                     }
                 }
             }
