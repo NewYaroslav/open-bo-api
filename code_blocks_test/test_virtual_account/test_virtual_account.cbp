@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="test_virtual_account" />
+		<Option pch_mode="0" />
+		<Option compiler="mingw_64_7_3_0" />
+		<Build>
+			<Target title="Release">
+				<Option output="test_virtual_account" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="mingw_64_7_3_0" />
+				<Compiler>
+					<Add option="-std=c++11" />
+					<Add option="-pg" />
+					<Add option="-g" />
+					<Add option="-Winvalid-pch" />
+					<Add directory="../../lib/Simple-WebSocket-Server" />
+					<Add directory="../../lib/openssl_win64/include" />
+					<Add directory="../../lib/openssl_win64/lib" />
+					<Add directory="../../lib/openssl_win64/bin" />
+					<Add directory="../../lib/curl-7.60.0-win64-mingw/bin" />
+					<Add directory="../../lib/curl-7.60.0-win64-mingw/include" />
+					<Add directory="../../lib/boost_1_71_0/include/boost-1_71" />
+					<Add directory="../../lib/intrade-bar-api-cpp/include" />
+					<Add directory="../../lib/xquotes_history/include" />
+					<Add directory="../../lib/gzip-hpp/include" />
+					<Add directory="../../lib/zlib" />
+					<Add directory="../../lib/xtime_cpp/src" />
+					<Add directory="../../lib/json/include" />
+					<Add directory="../../lib/utf8_v2_3_4/source" />
+					<Add directory="../../lib/xtechnical_analysis/include" />
+					<Add directory="../../lib/bo-payout-model/include" />
+					<Add directory="../../lib/forexprostools-cpp-api/include" />
+					<Add directory="../../lib/banana-filesystem-cpp/include" />
+					<Add directory="../../lib/mt-bridge/include" />
+					<Add directory="../../include" />
+					<Add directory="../../lib/zstd/lib" />
+					<Add directory="../../lib/olymptrade-cpp-api/include" />
+					<Add directory="../../lib/sqlite-amalgamation-3071300" />
+					<Add directory="../../lib" />
+				</Compiler>
+				<Linker>
+					<Add option="-pg -lgmon" />
+					<Add option="-static-libstdc++" />
+					<Add option="-static-libgcc" />
+					<Add option="-static" />
+					<Add library="../../lib/openssl_win64/lib/capi.lib" />
+					<Add library="../../lib/openssl_win64/lib/dasync.lib" />
+					<Add library="../../lib/openssl_win64/lib/libcrypto.lib" />
+					<Add library="../../lib/openssl_win64/lib/libssl.lib" />
+					<Add library="../../lib/openssl_win64/lib/openssl.lib" />
+					<Add library="../../lib/openssl_win64/lib/ossltest.lib" />
+					<Add library="../../lib/openssl_win64/lib/padlock.lib" />
+					<Add library="ws2_32" />
+					<Add library="wsock32" />
+					<Add library="../../lib/curl-7.60.0-win64-mingw/lib/libcurl.a" />
+					<Add library="../../lib/curl-7.60.0-win64-mingw/lib/libcurl.dll.a" />
+					<Add directory="../../lib/Simple-WebSocket-Server" />
+					<Add directory="../../lib/openssl_win64/lib" />
+					<Add directory="../../lib/openssl_win64/include" />
+					<Add directory="../../lib/openssl_win64/bin" />
+					<Add directory="../../lib/curl-7.60.0-win64-mingw/bin" />
+					<Add directory="../../lib/curl-7.60.0-win64-mingw/include" />
+					<Add directory="../../lib/curl-7.60.0-win64-mingw/lib" />
+					<Add directory="../../lib/intrade-bar-api-cpp/include" />
+					<Add directory="../../lib/xquotes_history/include" />
+					<Add directory="../../lib/gzip-hpp/include" />
+					<Add directory="../../lib/zlib" />
+					<Add directory="../../lib/xtime_cpp/src" />
+					<Add directory="../../lib/json/include" />
+					<Add directory="../../lib/utf8_v2_3_4/source" />
+					<Add directory="../../lib/xtechnical_analysis/include" />
+					<Add directory="../../lib/bo-payout-model/include" />
+					<Add directory="../../lib/forexprostools-cpp-api/include" />
+					<Add directory="../../lib/banana-filesystem-cpp/include" />
+					<Add directory="../../lib/mt-bridge/include" />
+					<Add directory="../../lib/zstd/lib" />
+					<Add directory="../../lib/olymptrade-cpp-api/include" />
+					<Add directory="../../lib/sqlite-amalgamation-3071300" />
+					<Add directory="../../include" />
+					<Add directory="../../lib" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fexceptions" />
+		</Compiler>
+		<Unit filename="../../include/open-bo-api-command-line-tools.hpp" />
+		<Unit filename="../../include/open-bo-api-indicators.hpp" />
+		<Unit filename="../../include/open-bo-api-news.hpp" />
+		<Unit filename="../../include/open-bo-api-settings.hpp" />
+		<Unit filename="../../include/open-bo-api-telegram.hpp" />
+		<Unit filename="../../include/open-bo-api-virtual-account.hpp" />
+		<Unit filename="../../include/open-bo-api.hpp" />
+		<Unit filename="../../lib/Simple-WebSocket-Server/client_ws.hpp" />
+		<Unit filename="../../lib/Simple-WebSocket-Server/client_wss.hpp" />
+		<Unit filename="../../lib/Simple-WebSocket-Server/crypto.hpp" />
+		<Unit filename="../../lib/Simple-WebSocket-Server/status_code.hpp" />
+		<Unit filename="../../lib/Simple-WebSocket-Server/utility.hpp" />
+		<Unit filename="../../lib/bo-payout-model/include/intrade-bar-payout-model.hpp" />
+		<Unit filename="../../lib/bo-payout-model/include/payout-model-common.hpp" />
+		<Unit filename="../../lib/forexprostools-cpp-api/include/ForexprostoolsApi.hpp" />
+		<Unit filename="../../lib/forexprostools-cpp-api/include/ForexprostoolsApiEasy.hpp" />
+		<Unit filename="../../lib/forexprostools-cpp-api/include/ForexprostoolsDataStore.hpp" />
+		<Unit filename="../../lib/gzip-hpp/include/gzip/decompress.hpp" />
+		<Unit filename="../../lib/intrade-bar-api-cpp/include/intrade-bar-api.hpp" />
+		<Unit filename="../../lib/intrade-bar-api-cpp/include/intrade-bar-common.hpp" />
+		<Unit filename="../../lib/intrade-bar-api-cpp/include/intrade-bar-https-api.hpp" />
+		<Unit filename="../../lib/intrade-bar-api-cpp/include/intrade-bar-logger.hpp" />
+		<Unit filename="../../lib/intrade-bar-api-cpp/include/intrade-bar-websocket-api.hpp" />
+		<Unit filename="../../lib/sqlite-amalgamation-3071300/sqlite3.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../lib/sqlite-amalgamation-3071300/sqlite3.h" />
+		<Unit filename="../../lib/xquotes_history/include/xquotes_common.hpp" />
+		<Unit filename="../../lib/xtechnical_analysis/include/xtechnical_common.hpp" />
+		<Unit filename="../../lib/xtechnical_analysis/include/xtechnical_correlation.hpp" />
+		<Unit filename="../../lib/xtechnical_analysis/include/xtechnical_indicators.hpp" />
+		<Unit filename="../../lib/xtechnical_analysis/include/xtechnical_normalization.hpp" />
+		<Unit filename="../../lib/xtechnical_analysis/include/xtechnical_regression_analysis.hpp" />
+		<Unit filename="../../lib/xtechnical_analysis/include/xtechnical_statistics.hpp" />
+		<Unit filename="../../lib/xtime_cpp/src/xtime.cpp" />
+		<Unit filename="../../lib/xtime_cpp/src/xtime.hpp" />
+		<Unit filename="../../lib/zlib/adler32.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../lib/zlib/compress.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../lib/zlib/crc32.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../lib/zlib/crc32.h" />
+		<Unit filename="../../lib/zlib/deflate.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../lib/zlib/deflate.h" />
+		<Unit filename="../../lib/zlib/gzclose.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../lib/zlib/gzguts.h" />
+		<Unit filename="../../lib/zlib/gzlib.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../lib/zlib/gzread.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../lib/zlib/gzwrite.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../lib/zlib/infback.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../lib/zlib/inffast.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../lib/zlib/inffast.h" />
+		<Unit filename="../../lib/zlib/inffixed.h" />
+		<Unit filename="../../lib/zlib/inflate.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../lib/zlib/inflate.h" />
+		<Unit filename="../../lib/zlib/inftrees.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../lib/zlib/inftrees.h" />
+		<Unit filename="../../lib/zlib/trees.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../lib/zlib/trees.h" />
+		<Unit filename="../../lib/zlib/uncompr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../lib/zlib/zconf.h" />
+		<Unit filename="../../lib/zlib/zlib.h" />
+		<Unit filename="../../lib/zlib/zutil.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../lib/zlib/zutil.h" />
+		<Unit filename="main.cpp" />
+		<Unit filename="pch.h">
+			<Option compile="1" />
+			<Option weight="0" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

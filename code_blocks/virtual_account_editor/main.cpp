@@ -20,9 +20,9 @@
 #include "open-bo-api-virtual-account.hpp"
 #include "nlohmann/json.hpp"
 
-#define PROGRAM_VERSION "1.0"
-#define PROGRAM_DATE "26.04.2020"
-//#define NDEBUG
+#define PROGRAM_VERSION "1.1 beta"
+#define PROGRAM_DATE "09.05.2020"
+#define NDEBUG
 
 static void HelpMarker(const char* desc);
 const std::string ini_file_name("va_editor.json");
@@ -53,7 +53,7 @@ int main() {
     const uint32_t window_width = 640;
     const uint32_t window_height = 480;
     const uint32_t window_indent = 32;
-    const char window_name[] = "Virtual Account Editor";
+    const char window_name[] = "Virtual Account Editor "PROGRAM_VERSION;
     sf::RenderWindow window(sf::VideoMode(window_width, window_height), window_name, sf::Style::None);
     window.setFramerateLimit(60);
     window.setIcon(va_editor_256x256_icon.width,  va_editor_256x256_icon.height,  va_editor_256x256_icon.pixel_data);
@@ -148,7 +148,7 @@ int main() {
         ImGui::SetNextWindowSize(ImVec2(main_menu_width, main_menu_heigh), ImGuiCond_FirstUseEver);
         ImGui::SetNextWindowBgAlpha(0.5);
 
-        ImGui::Begin("##MainMenu", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDecoration);
+        ImGui::Begin("##MainMenu", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysVerticalScrollbar);
 
         /* создаем строку для указания файла */
         static bool db_file_name_error = false;
@@ -208,11 +208,12 @@ int main() {
 
         /* выводим в первой колонке список аккаунтов */
         ImGui::Text("List of virtual accounts");
-
+#if(1)
         ImVec2 va_button_size(240, 20);
         uint64_t va_list_index = 0;
         int64_t va_list_delete_id = -1;
 
+        ImGui::BeginChild("List of virtual accounts##ListVA", ImVec2(300, 0), true);
         ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.0f,0.5f));
         for(auto &it : va_list) {
             ImGui::PushID(va_list_index);
@@ -225,15 +226,14 @@ int main() {
                 is_va_select = true;
             }
             ImGui::SameLine();
-            //ImGui::Dummy(ImVec2(20.0f, 0.0f));
-            //ImGui::SameLine();
-            if(ImGui::Button("Delete")) {
+            if(ImGui::Button("X##Delete")) {
                 va_list_delete_id = it.second.va_id;
             }
             ImGui::PopID();
             ++va_list_index;
         }
         ImGui::PopStyleVar();
+        ImGui::EndChild();
 
         if(va_list_delete_id >= 0) {
             if(va_ptr) {
@@ -241,6 +241,9 @@ int main() {
                 va_list = va_ptr->get_virtual_accounts();
             }
         }
+#else
+        ImGui::Columns(IM_ARRAYSIZE(headers), "TableTextureColumns", true);
+#endif
 
         ImGui::Dummy(ImVec2(0.0f, 20.0f));
 
@@ -275,8 +278,18 @@ int main() {
             ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
         }
 
-        ImGui::Text("ID: %d", va_edit.va_id); // ID аккаунта. Менять нельзя
-        ImGui::Dummy(ImVec2(0.0f, 20.0f));
+        /* реализуем сохранение данных */
+        if(ImGui::Button("Save##Save1") && is_va_select) {
+            va_edit.timestamp = xtime::get_timestamp();
+            if(va_ptr) {
+                va_ptr->update_virtual_account(va_edit);
+                va_list = va_ptr->get_virtual_accounts();
+            }
+        }
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+        ImGui::Text("Virtual Account ID: %d", va_edit.va_id); // ID аккаунта. Менять нельзя
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
         /* Будьте осторожны при использовании в std::stringкачестве входного буфера!
          * Конечно, вы всегда можете вызвать std::string::resize
@@ -293,7 +306,8 @@ int main() {
         va_edit.holder_name.copy(va_holder_name.data(), va_holder_name_copy_size);
         ImGui::InputText("Holder name", va_holder_name.data(), va_holder_name.size()); // Имя владельца аккаунта
         va_edit.holder_name = va_holder_name.data();
-        ImGui::Dummy(ImVec2(0.0f, 20.0f));
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
         ImGui::InputDouble("Starting balance", &va_edit.start_balance, 0.01, 1.0, "%.2f");
         if(va_edit.start_balance < 0.0d) va_edit.start_balance = 0.0d;
@@ -303,8 +317,79 @@ int main() {
         ImGui::InputDouble("Balance", &va_edit.balance, 0.01, 1.0, "%.2f");
 
         xtime::DateTime update_date_time(va_edit.timestamp);
-        ImGui::Text("Last update date of account: %02d.%02d.%d", update_date_time.day, update_date_time.month, update_date_time.year);
+        ImGui::Text("Last update date of account: %02d.%02d.%d %02d:%02d",
+            update_date_time.day, update_date_time.month, update_date_time.year,
+            update_date_time.hour, update_date_time.minute);
 
+        //
+        {
+            ImGui::BeginChild("Daily balance change##DailyBalance", ImVec2(300, 0), true);
+            ImGui::Columns(4, NULL, false);
+            ImGui::Text("Date");
+            ImGui::NextColumn();
+            ImGui::Text("Balance");
+            ImGui::NextColumn();
+            ImGui::Text("Gain");
+            ImGui::NextColumn();
+            ImGui::NextColumn();
+            double last_balance = va_edit.start_balance;
+            int va_daily_balance_index = 0;
+            xtime::timestamp_t va_daily_balance_key_delete = 0;
+            for(auto &it : va_edit.date_balance) {
+                ImGui::PushID(va_daily_balance_index);
+                xtime::DateTime date_time(it.first);
+                ImGui::Text("%02d.%02d.%d",
+                    date_time.day, date_time.month, date_time.year);
+                ImGui::NextColumn();
+                //ImGui::InputDouble("##DateBalance", &it.second, 0.01, 1.0, "%.2f", ImGuiInputTextFlags_NoMarkEdited);
+                ImGui::Text("%.2f", it.second);
+                ImGui::NextColumn();
+                const double gain = last_balance == 0.0 ? 1.0 : it.second / last_balance;
+                last_balance = it.second;
+                ImGui::Text("%.2f", gain);
+                ImGui::NextColumn();
+                if(ImGui::Button("X##DeleteDateBalance")) {
+                    va_daily_balance_key_delete = it.first;
+                }
+                ImGui::NextColumn();
+                ImGui::PopID();
+                ++va_daily_balance_index;
+            }
+            ImGui::Columns(1);
+            ImGui::EndChild();
+
+            if(va_daily_balance_key_delete != 0) {
+                va_edit.date_balance.erase(va_daily_balance_key_delete);
+            }
+
+            /* добавляем дату изменения депозита */
+            static bool va_daily_balance_error = false;
+            static std::array<char, 256> va_daily_balance_date = {0};
+            static double va_daily_balance_value = {0};
+            ImGui::InputText("Daily balance (Date)", va_daily_balance_date.data(), va_daily_balance_date.size()); // Имя владельца аккаунта
+            ImGui::InputDouble("Daily balance (Value)", &va_daily_balance_value, 0.01, 1.0, "%.2f");
+
+            if(ImGui::Button("Add daily balance")) {
+                std::string str(va_daily_balance_date.data());
+                xtime::timestamp_t daily_balance_date = 0;
+                if (str.length() == 0 ||
+                    !xtime::convert_str_to_timestamp(str, daily_balance_date)) {
+                    va_daily_balance_error = true;
+                } else {
+                    va_edit.date_balance[daily_balance_date] = va_daily_balance_value;
+                    va_daily_balance_date.fill('\0');
+                    va_daily_balance_value = 0;
+                    va_daily_balance_error = false;
+                }
+            }
+            if(va_daily_balance_error) {
+                ImGui::TextColored(ImVec4(1.0,0.0,0.0,1.0), "Error! Invalid balance date");
+            }
+        }
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+        /* отображаем винрейт */
         int wins = va_edit.wins, losses = va_edit.losses;
         ImGui::InputInt("Wins: ", &wins, 1, 10);
         ImGui::InputInt("Losses: ", &losses, 1, 10);
@@ -314,7 +399,7 @@ int main() {
         va_edit.losses = losses;
         ImGui::Text("Winrate: %.5f", va_edit.get_winrate());
 
-        ImGui::Dummy(ImVec2(0.0f, 20.0f));
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
         if(ImGui::CollapsingHeader("Risk management")) {
             /* настройка ширины */
@@ -335,7 +420,10 @@ int main() {
             if(va_edit.payout_limiter < 0.0d) va_edit.payout_limiter = 0.0d;
             ImGui::PopItemWidth();
         }
+
         if(ImGui::CollapsingHeader("List of allowed strategies")) {
+
+            ImGui::BeginChild("List of allowed strategies##ListStrategies", ImVec2(280, 140), true);
             std::vector<std::string> list_strategies(va_edit.list_strategies.begin(), va_edit.list_strategies.end());
             int64_t list_strategies_delete_index = -1;
             for(size_t n = 0; n < list_strategies.size(); ++n) {
@@ -346,7 +434,7 @@ int main() {
                 ImGui::InputText("##strategy_name", va_strategy_name.data(), va_strategy_name.size()); // Имя владельца аккаунта
                 list_strategies[n] = va_strategy_name.data();
                 ImGui::SameLine();
-                if(ImGui::Button("Delete")) {
+                if(ImGui::Button("Delete##DeleteStrategy")) {
                     list_strategies_delete_index = n;
                 }
                 ImGui::PopID();
@@ -355,8 +443,7 @@ int main() {
             if(list_strategies_delete_index >= 0) {
                 list_strategies.erase(list_strategies.begin() + list_strategies_delete_index);
             }
-
-            ImGui::Dummy(ImVec2(0.0f, 20.0f));
+            ImGui::EndChild();
 
             static bool strategy_name_error = false;
             static std::array<char, 256> va_strategy_name = {0};
@@ -377,7 +464,7 @@ int main() {
             }
         }
 
-        ImGui::Dummy(ImVec2(0.0f, 20.0f));
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
         std::array<char, 1024*64> va_note = {0};
         size_t va_note_copy_size = std::min(va_edit.note.size(), va_note.size() - 2);
@@ -385,23 +472,29 @@ int main() {
         ImGui::InputTextMultiline("Note", va_note.data(), va_note.size());
         va_edit.note = va_note.data();
 
-        ImGui::Dummy(ImVec2(0.0f, 20.0f));
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+        /* перечисляем изменения депозита */
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
         ImGui::Checkbox("Demo", &va_edit.demo);
         ImGui::Checkbox("Enabled", &va_edit.enabled);
 
         /* реализуем сохранение данных */
-        if(ImGui::Button("Save") && is_va_select) {
+        if(ImGui::Button("Save##Save2") && is_va_select) {
             va_edit.timestamp = xtime::get_timestamp();
             if(va_ptr) {
                 va_ptr->update_virtual_account(va_edit);
                 va_list = va_ptr->get_virtual_accounts();
             }
         }
+
         if(!is_va_select) {
             ImGui::PopItemFlag();
             ImGui::PopStyleVar();
         }
+
         ImGui::Columns(1);
         ImGui::Separator();
 

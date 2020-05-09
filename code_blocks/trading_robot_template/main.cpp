@@ -366,6 +366,7 @@ int main(int argc, char **argv) {
     std::cout << "is account currency RUB: " << intrade_bar_api.account_rub_currency() << std::endl;
 
     /* тут обрабатываем ошибки и прочее */
+#   if(0)
     while(true) {
         if(open_bo_api::News::check_error()) {
             const std::string err_message("error downloading news");
@@ -377,6 +378,10 @@ int main(int argc, char **argv) {
         // добавим сон
         std::this_thread::sleep_for(std::chrono::milliseconds(5000));
     }
+#   else
+    std::this_thread::sleep_for(std::chrono::milliseconds(20000));
+#   endif
+
     return EXIT_SUCCESS;
 }
 
