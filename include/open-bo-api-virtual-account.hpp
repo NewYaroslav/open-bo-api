@@ -881,6 +881,51 @@ namespace open_bo_api {
             }
         }
 
+        /** \brief Получить усиление за день
+         *
+         * \param date Дата
+         * \param demo Демо счет
+         * \param callback Функция обратного вызова
+         */
+        void get_gain_per_day(
+                const xtime::timestamp_t date,
+                const bool demo,
+                std::function<void(
+                    const uint64_t va_id,
+                    const std::string &holder_name,
+                    const double gain)> callback) {
+            if(callback == nullptr) return;
+            /* блокируем доступ к virtual_accounts из других потоков */
+            std::lock_guard<std::mutex> lock(virtual_accounts_mutex);
+
+            for(auto &it : virtual_accounts) {
+                if(it.second.enabled && it.second.demo == demo) {
+                    /* если данных баланса по дням нет, значит торговли не было */
+                    if(it.second.date_balance.size() == 0) {
+                        callback(it.second.va_id, it.second.holder_name, 1.0d);
+                        continue;
+                    }
+
+                    auto it_date = it.second.date_balance.find(xtime::get_first_timestamp_day(date));
+                    /* за указанный день не было торгов, то значит усилени единичное */
+                    if(it_date == it.second.date_balance.end()) {
+                        callback(it.second.va_id, it.second.holder_name, 1.0d);
+                        continue;
+                    }
+                    /* если это первый торговый день, то усиление измеряется относительно стартвого баланса */
+                    if(it_date == it.second.date_balance.begin()) {
+                        const double gain = it.second.start_balance == 0.0 ? 1.0 : it_date->second / it.second.start_balance;
+                        callback(it.second.va_id, it.second.holder_name, gain);
+                        continue;
+                    }
+                    auto it_date_start = it_date;
+                    std::advance(it_date_start, -1);
+                    const double gain = it_date_start->second == 0.0 ? 1.0 : it_date->second / it_date_start->second;
+                    callback(it.second.va_id, it.second.holder_name, gain);
+                }
+            }
+        }
+
     };
 };
 

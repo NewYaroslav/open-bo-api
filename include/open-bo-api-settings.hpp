@@ -41,11 +41,14 @@ namespace open_bo_api {
 
         /* настройки торгового робота */
         std::string trading_robot_work_log_file = "logger/trading_robot_work_file.log";
-        std::string trading_robot_work_path = "logger/";
+        std::string trading_robot_work_log_path = "logger/";
+        std::string trading_robot_va_path;          /**< Путь к базе данных с виртуальными аккаунтами */
+
         double trading_robot_absolute_stop_loss = 0.0;  /**< Абсолютный стоп-лосс. Если депозит опустится ниже данного значения, робот может перестать торговать */
         double trading_robot_relative_stop_loss = 0.0;
         double trading_robot_balance_offset = 0.0;  /**< Смещение баланса. Данный параметр смещает уровень баланса на указанное число. Это может быть полезно, когда часть депозита лежит не у брокера */
         double trading_robot_payout_limiter = 1.0;  /**< Ограничитель процентов выплат. Это влияет на формулы расчета ставок, они не будут считать ставку выше, чем для данной выплаты */
+        bool trading_robot_use_va = false;          /**< Использовать виртуальные аккаунты или нет */
 
         /* настройки новостей */
         std::string news_sert_file = "curl-ca-bundle.crt";
@@ -177,8 +180,17 @@ namespace open_bo_api {
                 if(j["trading_robot"]["work_log_file"] != nullptr) {
                     trading_robot_work_log_file = j["trading_robot"]["work_log_file"];
                 }
-                if(j["trading_robot"]["work_path"] != nullptr) {
-                    trading_robot_work_path = j["trading_robot"]["work_path"];
+                if(j["trading_robot"]["work_path"] != nullptr) {  // для совместимости со старыми версиями
+                    trading_robot_work_log_path = j["trading_robot"]["work_path"];
+                }
+                if(j["trading_robot"]["work_log_path"] != nullptr) {
+                    trading_robot_work_log_path = j["trading_robot"]["work_log_path"];
+                }
+                if(j["trading_robot"]["va_path"] != nullptr) {
+                    trading_robot_va_path = j["trading_robot"]["va_path"];
+                }
+                if(j["trading_robot"]["use_va"] != nullptr) {
+                    trading_robot_use_va = j["trading_robot"]["use_va"];
                 }
                 if(j["trading_robot"]["absolute_stop_loss"] != nullptr) {
                     trading_robot_absolute_stop_loss = j["trading_robot"]["absolute_stop_loss"];
@@ -234,16 +246,20 @@ namespace open_bo_api {
                     is_error = true;
                     return;
                 }
-                news_sert_file = std::string(env_ptr) + "/" + news_sert_file;
-                intrade_bar_sert_file = std::string(env_ptr) + "/" + intrade_bar_sert_file;
-                intrade_bar_cookie_file = std::string(env_ptr) + "/" + intrade_bar_cookie_file;
-                intrade_bar_bets_log_file = std::string(env_ptr) + "/" + intrade_bar_bets_log_file;
-                intrade_bar_work_log_file = std::string(env_ptr) + "/" + intrade_bar_work_log_file;
-                intrade_bar_websocket_log_file = std::string(env_ptr) + "/" + intrade_bar_websocket_log_file;
-                trading_robot_work_log_file = std::string(env_ptr) + "/" + trading_robot_work_log_file;
-				telegram_sert_file = std::string(env_ptr) + "/" + telegram_sert_file;
-				telegram_chats_id_file = std::string(env_ptr) + "/" + telegram_chats_id_file;
-				trading_robot_work_path = std::string(env_ptr) + "/" + trading_robot_work_path;
+                std::string str_env(env_ptr);
+                news_sert_file = str_env + "/" + news_sert_file;
+                intrade_bar_sert_file = str_env + "/" + intrade_bar_sert_file;
+                intrade_bar_cookie_file = str_env + "/" + intrade_bar_cookie_file;
+                if(intrade_bar_bets_log_file.size() != 0) intrade_bar_bets_log_file = str_env + "/" + intrade_bar_bets_log_file;
+                if(intrade_bar_work_log_file.size() != 0) intrade_bar_work_log_file = str_env + "/" + intrade_bar_work_log_file;
+                if(intrade_bar_websocket_log_file.size() != 0) intrade_bar_websocket_log_file = str_env + "/" + intrade_bar_websocket_log_file;
+                if(trading_robot_work_log_file.size() != 0) trading_robot_work_log_file = str_env + "/" + trading_robot_work_log_file;
+
+				telegram_sert_file = str_env + "/" + telegram_sert_file;
+				telegram_chats_id_file = str_env + "/" + telegram_chats_id_file;
+
+				trading_robot_work_log_path = str_env + "/" + trading_robot_work_log_path;
+				if(trading_robot_va_path.size() != 0) trading_robot_va_path = str_env + "/" + trading_robot_va_path;
             }
         }
 
@@ -275,7 +291,7 @@ namespace open_bo_api {
 
         std::string get_work_log_file_name() {
             std::string temp;
-            temp += trading_robot_work_path;
+            temp += trading_robot_work_log_path;
             temp += "/";
             temp += get_date_name();
             temp += ".log";

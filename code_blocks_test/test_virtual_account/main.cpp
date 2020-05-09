@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
     double b = vas.get_balance(true);
     double max_error = 0;
 
-    for(size_t i = 0; i < 1000; ++i) {
+    for(size_t i = 0; i < 10; ++i) {
 
         xtime::timestamp_t date_time = xtime::get_timestamp(9,5,2020) + i * xtime::SECONDS_IN_HOUR;
 
@@ -59,7 +59,8 @@ int main(int argc, char **argv) {
 
         vas.make_bet(i, a, strategy, true, 0.85, 0.6, 0.4, date_time);
         b -= a;
-        if(i % 100 < 56) {
+        //if(i % 100 < 56) {
+        if(1) {
             vas.set_win(i, date_time);
             const double p = a * 0.85;
             b += p;
@@ -75,6 +76,12 @@ int main(int argc, char **argv) {
         if(b < vas.get_balance(true)) {
             std::cout << "error " << e << std::endl;
         }
+        vas.get_gain_per_day(date_time, true, [&](
+                    const uint64_t va_id,
+                    const std::string &holder_name,
+                    const double gain){
+            std::cout << "id: " << va_id << " holder name " << holder_name << " gain " << gain << std::endl;
+        });
         vas.push();
     }
     vas.push();
