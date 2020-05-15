@@ -20,8 +20,8 @@
 #include "open-bo-api-virtual-account.hpp"
 #include "nlohmann/json.hpp"
 
-#define PROGRAM_VERSION "1.1 beta"
-#define PROGRAM_DATE "09.05.2020"
+#define PROGRAM_VERSION "1.2 beta"
+#define PROGRAM_DATE "15.05.2020"
 #define NDEBUG
 
 static void HelpMarker(const char* desc);
@@ -418,6 +418,9 @@ int main() {
             ImGui::InputDouble("Payout limit", &va_edit.payout_limiter, 0.01, 1.0, "%.3f");
             if(va_edit.payout_limiter > 1.0d) va_edit.payout_limiter = 1.0d;
             if(va_edit.payout_limiter < 0.0d) va_edit.payout_limiter = 0.0d;
+            ImGui::InputDouble("Winrate limit", &va_edit.winrate_limiter, 0.01, 1.0, "%.3f");
+            if(va_edit.winrate_limiter > 1.0d) va_edit.winrate_limiter = 1.0d;
+            if(va_edit.winrate_limiter < 0.0d) va_edit.winrate_limiter = 0.0d;
             ImGui::PopItemWidth();
         }
 

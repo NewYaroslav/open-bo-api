@@ -46,9 +46,11 @@ namespace open_bo_api {
 
         double trading_robot_absolute_stop_loss = 0.0;  /**< Абсолютный стоп-лосс. Если депозит опустится ниже данного значения, робот может перестать торговать */
         double trading_robot_relative_stop_loss = 0.0;
-        double trading_robot_balance_offset = 0.0;  /**< Смещение баланса. Данный параметр смещает уровень баланса на указанное число. Это может быть полезно, когда часть депозита лежит не у брокера */
-        double trading_robot_payout_limiter = 1.0;  /**< Ограничитель процентов выплат. Это влияет на формулы расчета ставок, они не будут считать ставку выше, чем для данной выплаты */
-        bool trading_robot_use_va = false;          /**< Использовать виртуальные аккаунты или нет */
+        double trading_robot_balance_offset = 0.0;      /**< Смещение баланса. Данный параметр смещает уровень баланса на указанное число. Это может быть полезно, когда часть депозита лежит не у брокера */
+        double trading_robot_payout_limiter = 1.0;      /**< Ограничитель процентов выплат. Это влияет на формулы расчета ставок, они не будут считать ставку выше, чем для данной выплаты */
+        double trading_robot_winrate_limiter = 0.7;     /**< Ограничитель винрейта. Это влияет на формулы расчета ставок, они не будут считать ставку выше, чем для данного винрейта */
+        uint32_t trading_robot_va_balance_precision = 3;/**< Количество знаков после запятой для расчетов, связанных с балансом виртуальных счетов */
+        bool trading_robot_use_va = false;              /**< Использовать виртуальные аккаунты или нет */
 
         /* настройки новостей */
         std::string news_sert_file = "curl-ca-bundle.crt";
@@ -203,6 +205,12 @@ namespace open_bo_api {
                 }
                 if(j["trading_robot"]["payout_limiter"] != nullptr) {
                     trading_robot_payout_limiter = j["trading_robot"]["payout_limiter"];
+                }
+                if(j["trading_robot"]["winrate_limiter"] != nullptr) {
+                    trading_robot_winrate_limiter = j["trading_robot"]["winrate_limiter"];
+                }
+                if(j["trading_robot"]["va_balance_precision"] != nullptr) {
+                    trading_robot_va_balance_precision = j["trading_robot"]["va_balance_precision"];
                 }
 
                 //

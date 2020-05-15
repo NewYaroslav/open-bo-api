@@ -49,18 +49,18 @@ int main(int argc, char **argv) {
     double b = vas.get_balance(true);
     double max_error = 0;
 
-    for(size_t i = 0; i < 10; ++i) {
+    for(size_t i = 0; i < 1000; ++i) {
 
-        xtime::timestamp_t date_time = xtime::get_timestamp(9,5,2020) + i * xtime::SECONDS_IN_HOUR;
+        xtime::timestamp_t date_time = xtime::get_timestamp() + i * xtime::SECONDS_IN_HOUR;
 
         double a = 0;
         vas.calc_amount(a, strategy, true, 0.85, 0.6, 0.4);
         a = (double)((uint64_t)(a * 100.0d)) / 100.d;
 
-        vas.make_bet(i, a, strategy, true, 0.85, 0.6, 0.4, date_time);
+        vas.make_bet(i, a, strategy, true, 0.85, 0.6, 0.4, date_time, 3);
         b -= a;
-        //if(i % 100 < 56) {
-        if(1) {
+        if(i % 100 < 58) {
+        //if(1) {
             vas.set_win(i, date_time);
             const double p = a * 0.85;
             b += p;

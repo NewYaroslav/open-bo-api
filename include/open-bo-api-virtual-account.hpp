@@ -58,6 +58,7 @@ namespace open_bo_api {
         double kelly_attenuation_multiplier = 1.0d; /**< Множитель коэффициента ослабления Келли. Данный параметр влияет на общий уровень риска */
         double kelly_attenuation_limiter = 0.4d;    /**< Ограничение коэффициента ослабления Келли */
         double payout_limiter = 1.0d;               /**< Ограничитель процентов выплат. Это влияет на формулы расчета ставок, они не будут считать ставку выше, чем для данной выплаты */
+        double winrate_limiter = 1.0d;              /**< Ограничитель процентов выплат */
 
         uint64_t wins = 0;
         uint64_t losses = 0;
@@ -105,7 +106,8 @@ namespace open_bo_api {
             if(list_strategies.find(strategy_name) == list_strategies.end()) return false;
             const double calc_payout = std::min(payout, payout_limiter);
             const double calc_kelly_attenuation = std::min(kelly_attenuation * kelly_attenuation_multiplier, kelly_attenuation_limiter);
-            const double calc_risk = (((1.0d + calc_payout) * winrate - 1.0d) / calc_payout) * calc_kelly_attenuation;
+            const double calc_winrate = std::min(winrate, winrate_limiter);
+            const double calc_risk = (((1.0d + calc_payout) * calc_winrate - 1.0d) / calc_payout) * calc_kelly_attenuation;
             amount = balance * calc_risk;
             return true;
         }
@@ -213,18 +215,15 @@ namespace open_bo_api {
             va.kelly_attenuation_multiplier = atof(argv[7]);
             va.kelly_attenuation_limiter = atof(argv[8]);
             va.payout_limiter = atof(argv[9]);
-            parse_list(argv[10], va.list_strategies);
-            va.demo = atoi(argv[11]) == 0 ? false : true;
-            va.enabled = atoi(argv[12]) == 0 ? false : true;
-            va.start_timestamp = atoll(argv[13]);
-            va.timestamp = atoll(argv[14]);
-            va.wins = atoll(argv[15]);
-            va.losses = atoll(argv[16]);
-            //try {
-                //va.j_data = json::parse(argv[17]);
-            va.convert_json_to_date_balance(argv[17]);
-            //}
-            //catch(...) {};
+            va.winrate_limiter = atof(argv[10]);
+            parse_list(argv[11], va.list_strategies);
+            va.demo = atoi(argv[12]) == 0 ? false : true;
+            va.enabled = atoi(argv[13]) == 0 ? false : true;
+            va.start_timestamp = atoll(argv[14]);
+            va.timestamp = atoll(argv[15]);
+            va.wins = atoll(argv[16]);
+            va.losses = atoll(argv[17]);
+            va.convert_json_to_date_balance(argv[18]);
             callback_virtual_accounts[va_id] = va;
         }
 
@@ -300,6 +299,7 @@ namespace open_bo_api {
                 "kelly_attenuation_multiplier   REAL    NOT NULL default '0',"
                 "kelly_attenuation_limiter      REAL    NOT NULL default '0',"
                 "payout_limiter                 REAL    NOT NULL default '0',"
+                "winrate_limiter                REAL    NOT NULL default '0',"
                 "list_strategies                TEXT    NOT NULL,"
                 "demo               INTEGER NOT NULL,"
                 "enabled            INTEGER NOT NULL,"
@@ -455,7 +455,7 @@ namespace open_bo_api {
                 "id,holder_name,note,start_balance,balance,"
                 "absolute_stop_loss,absolute_take_profit,"
                 "kelly_attenuation_multiplier,kelly_attenuation_limiter,"
-                "payout_limiter,list_strategies,"
+                "payout_limiter,winrate_limiter,list_strategies,"
                 "demo,enabled,start_timestamp,timestamp,"
                 "wins,losses,json) ");
             va.va_id = 0;
@@ -490,6 +490,8 @@ namespace open_bo_api {
             buffer += std::to_string(va.kelly_attenuation_limiter);
             buffer += ",";
             buffer += std::to_string(va.payout_limiter);
+            buffer += ",";
+            buffer += std::to_string(va.winrate_limiter);
             buffer += ",'";
             for(auto strategy_name : va.list_strategies) {
                 buffer += strategy_name;
@@ -556,6 +558,8 @@ namespace open_bo_api {
             buffer += std::to_string(va.kelly_attenuation_limiter);
             buffer += ", payout_limiter = ";
             buffer += std::to_string(va.payout_limiter);
+            buffer += ", winrate_limiter = ";
+            buffer += std::to_string(va.winrate_limiter);
             buffer += ", list_strategies = '";
             for(auto strategy_name : va.list_strategies) {
                 buffer += strategy_name;
