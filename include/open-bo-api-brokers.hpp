@@ -120,7 +120,7 @@ namespace open_bo_api {
         }
 #endif
 
-         /** \brief Получитьабсолютный размер ставки и процент выплат
+         /** \brief Получить абсолютный размер ставки и процент выплат
           *
           * Проценты выплат варьируются обычно от 0 до 1.0, где 1.0 соответствует 100% выплате брокера
           * \param amount Размер ставки в абсолютном значении
@@ -158,6 +158,30 @@ namespace open_bo_api {
                 winrate,
                 attenuator,
                 payout_limiter);
+        }
+
+        /** \brief Получить проценты выплат
+          *
+          * Проценты выплат варьируются обычно от 0 до 1.0, где 1.0 соответствует 100% выплате брокера
+          * \param amount Размер ставки в абсолютном значении
+          * \param payout Процент выплат
+          * \param symbol_name Имя валютной пары
+          * \param timestamp Метка времени (GMT)
+          * \param duration Длительность опциона в секундах
+          * \param is_rub Рублевый счет
+          * \param amount Размер ставки
+          * \return состояние выплаты (0 в случае успеха, иначе см. payout_model::IntradeBar::PayoutCancelType)
+          */
+        inline const static int get_payout(
+                double &payout,
+                const std::string &symbol_name,
+                const xtime::timestamp_t timestamp,
+                const uint32_t duration,
+                const bool is_rub,
+                const double amount) {
+            payout_model::IntradeBar pm;
+            pm.set_rub_account_currency(is_rub);
+            return pm.get_payout(payout,symbol_name,timestamp,duration,amount);
         }
     };
 };
