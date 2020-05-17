@@ -410,18 +410,32 @@ namespace open_bo_api {
                 const size_t result_size = j["result"].size();
                 //std::cout << "result_size: " << result_size << std::endl;
                 for(size_t i = 0; i < result_size; ++i) {
-                    int64_t chat_id = j["result"][i]["message"]["chat"]["id"];
+                    int64_t chat_id = 0;
+                    json j_result = j["result"][i];
+                    auto it_json = j_result.find("message");
+                    if(it_json != j_result.end()) {
+                        chat_id = (*it_json)["chat"]["id"];
+                    } else {
+                        it_json = j_result.find("channel_post");
+                        if(it_json != j_result.end()) {
+                            chat_id = (*it_json)["chat"]["id"];
+                        } else continue;
+                    }
+
+                    //int64_t chat_id = j["result"][i]["channel_post"]["chat"]["id"];
+                    //j["result"][i]["message"]["chat"]["type"]
+
                     //std::cout << "chat_id: " << chat_id << std::endl;
-                    if(j["result"][i]["message"]["chat"]["type"] == "private") {
+                    if((*it_json)["chat"]["type"] == "private") {
                         std::string username;
-                        if(j["result"][i]["message"]["chat"]["username"] != nullptr) {
-                            username = j["result"][i]["message"]["chat"]["username"];
+                        if((*it_json)["chat"]["username"] != nullptr) {
+                            username = (*it_json)["chat"]["username"];
                         } else
-                        if(j["result"][i]["message"]["chat"]["first_name"] != nullptr) {
-                            username = j["result"][i]["message"]["chat"]["first_name"];
-                            if(j["result"][i]["message"]["chat"]["last_name"] != nullptr) {
+                        if((*it_json)["chat"]["first_name"] != nullptr) {
+                            username = (*it_json)["chat"]["first_name"];
+                            if((*it_json)["last_name"] != nullptr) {
                                 username += " ";
-                                username += j["result"][i]["message"]["chat"]["last_name"];
+                                username += (*it_json)["chat"]["last_name"];
                             }
                         } else {
                             continue;
@@ -430,10 +444,11 @@ namespace open_bo_api {
                             std::lock_guard<std::mutex> lock(chats_id_mutex);
                             chats_id[username] = chat_id;
                         }
-                        //std::cout << username << " id: " << chat_id << std::endl;
+                        //std::cout << "username: " << username << " id: " << chat_id << std::endl;
                     } else
-                    if(j["result"][i]["message"]["chat"]["type"] == "group") {
-                        std::string title = j["result"][i]["message"]["chat"]["title"];
+                    if((*it_json)["chat"]["type"] == "group" ||
+                        (*it_json)["chat"]["type"] == "channel") {
+                        std::string title = (*it_json)["chat"]["title"];
                         {
                             std::lock_guard<std::mutex> lock(chats_id_mutex);
                             chats_id[title] = chat_id;
