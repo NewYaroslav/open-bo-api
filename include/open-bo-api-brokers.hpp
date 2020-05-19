@@ -62,6 +62,7 @@ namespace open_bo_api {
          * \param winrate Винрейт стратегии
          * \param attenuator Ослабление коэффициента Келли, желательно использовать значения не боьше 0.4
          * \param payout_limiter Ограничитель процента выплат (по умолчанию не используется)
+         * \param winrate_limiter Ограничитель винрейта (по умолчанию не используется)
          * \return состояние выплаты (0 в случае успеха, иначе см. payout_model::IntradeBar::PayoutCancelType)
          */
         inline const static int get_amount(
@@ -73,9 +74,10 @@ namespace open_bo_api {
                 const double balance,
                 const double winrate,
                 const double attenuator,
-                const double payout_limiter = 1.0) {
+                const double payout_limiter = 1.0,
+                const double winrate_limiter = 1.0) {
             return api.get_amount(amount, payout, symbol_name, duration,
-                balance, winrate, attenuator, payout_limiter);
+                balance, winrate, attenuator, payout_limiter, winrate_limiter);
         }
     };
 
@@ -133,6 +135,7 @@ namespace open_bo_api {
           * \param winrate Винрейт стратегии
           * \param attenuator Ослабление коэффициента Келли, желательно использовать значения не боьше 0.4
           * \param payout_limiter Ограничитель процента выплат (по умолчанию не используется)
+          * \param winrate_limiter Ограничитель винрейта (по умолчанию не используется)
           * \return состояние выплаты (0 в случае успеха, иначе см. payout_model::IntradeBar::PayoutCancelType)
           */
         inline const static int get_amount(
@@ -145,7 +148,8 @@ namespace open_bo_api {
                 const double balance,
                 const double winrate,
                 const double attenuator,
-                const double payout_limiter = 1.0) {
+                const double payout_limiter = 1.0,
+                const double winrate_limiter = 1.0) {
             payout_model::IntradeBar pm;
             pm.set_rub_account_currency(is_rub);
             return pm.get_amount(
@@ -157,7 +161,8 @@ namespace open_bo_api {
                 balance,
                 winrate,
                 attenuator,
-                payout_limiter);
+                payout_limiter,
+                winrate_limiter);
         }
 
         /** \brief Получить проценты выплат
