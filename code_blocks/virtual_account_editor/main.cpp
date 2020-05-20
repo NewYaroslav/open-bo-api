@@ -21,7 +21,7 @@
 #include "nlohmann/json.hpp"
 
 #define PROGRAM_VERSION "1.2 beta"
-#define PROGRAM_DATE "15.05.2020"
+#define PROGRAM_DATE "19.05.2020"
 #define NDEBUG
 
 static void HelpMarker(const char* desc);
@@ -414,7 +414,7 @@ int main() {
             if(va_edit.kelly_attenuation_multiplier < 0.001d) va_edit.kelly_attenuation_multiplier = 0.001d;
             ImGui::InputDouble("Kelly Attenuation Limit", &va_edit.kelly_attenuation_limiter, 0.01, 1.0, "%.5f");
             if(va_edit.kelly_attenuation_limiter < 0.001d) va_edit.kelly_attenuation_limiter = 0.001d;
-            if(va_edit.kelly_attenuation_limiter > 1.0d) va_edit.kelly_attenuation_limiter = 1.0d;
+            if(va_edit.kelly_attenuation_limiter > 10.0d) va_edit.kelly_attenuation_limiter = 10.0d;
             ImGui::InputDouble("Payout limit", &va_edit.payout_limiter, 0.01, 1.0, "%.3f");
             if(va_edit.payout_limiter > 1.0d) va_edit.payout_limiter = 1.0d;
             if(va_edit.payout_limiter < 0.0d) va_edit.payout_limiter = 0.0d;
