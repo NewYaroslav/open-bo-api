@@ -38,26 +38,27 @@ int main(int argc, char **argv) {
     //if(!open_bo_api::open_json_file(settings.json_file_name, json_settings)) return EXIT_FAILURE;
     //settings.init(json_settings);
     //if(settings.check_error()) return EXIT_FAILURE;
-
+    bool is_demo = false;
     open_bo_api::VirtualAccounts vas("test.db");
     std::cout << "vas size: " << vas.get_virtual_accounts().size() << std::endl;
-    std::cout << "vas balance: " << vas.get_balance(true) << std::endl;
-    std::string strategy("TEST");
+    std::cout << "vas balance: " << vas.get_balance(is_demo) << std::endl;
+    std::string strategy("TEST2");
 
     //double b = 10000;
 
-    double b = vas.get_balance(true);
+    double b = vas.get_balance(is_demo);
     double max_error = 0;
+
 
     for(size_t i = 0; i < 1000; ++i) {
 
         xtime::timestamp_t date_time = xtime::get_timestamp() + i * xtime::SECONDS_IN_HOUR;
 
         double a = 0;
-        vas.calc_amount(a, strategy, true, 0.85, 0.6, 0.4);
+        vas.calc_amount(a, strategy, is_demo, 0.85, 0.6, 0.4);
         a = (double)((uint64_t)(a * 100.0d)) / 100.d;
 
-        vas.make_bet(i, a, strategy, true, 0.85, 0.6, 0.4, date_time, 3);
+        vas.make_bet(i, a, strategy, is_demo, 0.85, 0.6, 0.4, date_time, 3);
         b -= a;
         if(i % 100 < 58) {
         //if(1) {
@@ -68,15 +69,15 @@ int main(int argc, char **argv) {
         } else {
             vas.set_loss(i, date_time);
         }
-        std::cout << "b " << b << " b-va " << vas.get_balance(true) << std::endl;
+        std::cout << "b " << b << " b-va " << vas.get_balance(is_demo) << std::endl;
 
-        const double e = std::abs(b - vas.get_balance(true));
+        const double e = std::abs(b - vas.get_balance(is_demo));
         if(max_error < e) max_error  = e;
 
-        if(b < vas.get_balance(true)) {
+        if(b < vas.get_balance(is_demo)) {
             std::cout << "error " << e << std::endl;
         }
-        vas.get_gain_per_day(date_time, true, [&](
+        vas.get_gain_per_day(date_time, is_demo, [&](
                     const uint64_t va_id,
                     const std::string &holder_name,
                     const double gain){

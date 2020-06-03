@@ -282,7 +282,7 @@ namespace open_bo_api {
             return is_error;
         }
 
-        std::string get_date_name(const xtime::timestamp_t timestamp) {
+        std::string get_date_name(const xtime::timestamp_t timestamp) const {
             xtime::DateTime date_time(timestamp);
             std::string temp;
             temp += std::to_string(date_time.year);
@@ -293,11 +293,11 @@ namespace open_bo_api {
             return temp;
         }
 
-        std::string get_date_name() {
+        std::string get_date_name() const {
             return get_date_name(xtime::get_timestamp());
         }
 
-        std::string get_work_log_file_name() {
+        std::string get_work_log_file_name() const {
             std::string temp;
             temp += trading_robot_work_log_path;
             temp += "/";

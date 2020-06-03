@@ -20,11 +20,13 @@
 #include "open-bo-api-virtual-account.hpp"
 #include "nlohmann/json.hpp"
 
-#define PROGRAM_VERSION "1.2 beta"
-#define PROGRAM_DATE "19.05.2020"
+#define PROGRAM_VERSION "1.3 beta"
+#define PROGRAM_DATE "03.06.2020"
 #define NDEBUG
 
 static void HelpMarker(const char* desc);
+static void parse_list(std::string value, std::vector<std::string> &elemet_list) noexcept;
+
 const std::string ini_file_name("va_editor.json");
 
 int main() {
@@ -53,7 +55,7 @@ int main() {
     const uint32_t window_width = 640;
     const uint32_t window_height = 480;
     const uint32_t window_indent = 32;
-    const char window_name[] = "Virtual Account Editor "PROGRAM_VERSION;
+    const char window_name[] = "Virtual Account Editor " PROGRAM_VERSION;
     sf::RenderWindow window(sf::VideoMode(window_width, window_height), window_name, sf::Style::None);
     window.setFramerateLimit(60);
     window.setIcon(va_editor_256x256_icon.width,  va_editor_256x256_icon.height,  va_editor_256x256_icon.pixel_data);
@@ -127,12 +129,12 @@ int main() {
         while (window.pollEvent(event)) {
             ImGui::SFML::ProcessEvent(event);
 
-            if (event.type == sf::Event::Closed) {
+            if(event.type == sf::Event::Closed) {
                 window.close();
             } else
             // перетаскивание окна https://en.sfml-dev.org/forums/index.php?topic=14391.0
-            if (event.type == sf::Event::MouseButtonPressed) {
-                if (event.mouseButton.button == sf::Mouse::Left) {
+            if(event.type == sf::Event::MouseButtonPressed) {
+                if(event.mouseButton.button == sf::Mouse::Left) {
                     grabbed_offset = window.getPosition() - sf::Mouse::getPosition();
                 }
             }
@@ -261,6 +263,31 @@ int main() {
             }
         }
 
+        if(ImGui::Button("All accounts on demo")) {
+            if(va_ptr) {
+                va_list = va_ptr->get_virtual_accounts();
+                for(auto &it : va_list) {
+                    it.second.demo = true;
+                }
+                for(auto &it : va_list) {
+                    va_ptr->update_virtual_account(it.second);
+                }
+                is_va_select = false;
+            }
+        }
+        if(ImGui::Button("All accounts on real")) {
+            if(va_ptr) {
+                va_list = va_ptr->get_virtual_accounts();
+                for(auto &it : va_list) {
+                    it.second.demo = false;
+                }
+                for(auto &it : va_list) {
+                    va_ptr->update_virtual_account(it.second);
+                }
+                is_va_select = false;
+            }
+        }
+
         if(!va_ptr || (va_ptr && va_ptr->check_errors())) {
             ImGui::PopItemFlag();
             ImGui::PopStyleVar();
@@ -288,7 +315,7 @@ int main() {
         }
 
         ImGui::Dummy(ImVec2(0.0f, 8.0f));
-        ImGui::Text("Virtual Account ID: %d", va_edit.va_id); // ID аккаунта. Менять нельзя
+        ImGui::Text("Virtual Account ID: %d", (int)va_edit.va_id); // ID аккаунта. Менять нельзя
         ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
         /* Будьте осторожны при использовании в std::stringкачестве входного буфера!
@@ -456,7 +483,9 @@ int main() {
                 if(str.length() == 0) {
                     strategy_name_error = true;
                 } else {
-                    list_strategies.push_back(str);
+                    /* вставим или одну стратегию, или список */
+                    parse_list(str, list_strategies);
+                    //list_strategies.push_back(str);
                     va_strategy_name.fill('\0');
                     strategy_name_error = false;
                 }
@@ -512,7 +541,11 @@ int main() {
 
         /* реализуем перемещение окна в экране */
         bool grabbed_window = sf::Mouse::isButtonPressed(sf::Mouse::Left);
-        if(grabbed_window && (sf::Mouse::getPosition(window).y < window_indent)) {
+        if(grabbed_window &&
+            (sf::Mouse::getPosition(window).y < (float)window_indent &&
+             sf::Mouse::getPosition(window).y > 0.0 &&
+             sf::Mouse::getPosition(window).x > 0.0 &&
+             sf::Mouse::getPosition(window).x < (float)window_width)) {
                 window.setPosition(sf::Mouse::getPosition() + grabbed_offset);
         }
 
@@ -536,5 +569,23 @@ static void HelpMarker(const char* desc) {
         ImGui::TextUnformatted(desc);
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
+    }
+}
+
+/** \brief Разобрать строку списка
+ *
+ * \param value Список
+ * \param elemet_list Элементы списка
+ */
+static void parse_list(std::string value, std::vector<std::string> &elemet_list) noexcept {
+    if(value.back() != ',') value += ",";
+    std::size_t start_pos = 0;
+    while(true) {
+        std::size_t found_beg = value.find_first_of(",", start_pos);
+        if(found_beg != std::string::npos) {
+            std::size_t len = found_beg - start_pos;
+            if(len > 0) elemet_list.push_back(value.substr(start_pos, len));
+            start_pos = found_beg + 1;
+        } else break;
     }
 }

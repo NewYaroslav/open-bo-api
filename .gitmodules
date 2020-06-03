@@ -61,3 +61,6 @@
 [submodule "lib/IconFontCppHeaders"]
 	path = lib/IconFontCppHeaders
 	url = https://github.com/juliettef/IconFontCppHeaders.git
+[submodule "lib/simple-named-pipe-server"]
+	path = lib/simple-named-pipe-server
+	url = https://github.com/NewYaroslav/simple-named-pipe-server.git
