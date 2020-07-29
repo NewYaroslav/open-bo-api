@@ -109,6 +109,11 @@ int main(int argc, char **argv) {
         olymp_trade_api.set_demo_account(settings.is_olymp_trade_demo_account);
     }
 
+    const bool is_wait_formation_new_bar = false;
+    const bool is_open_equal_close = true;
+    const bool is_merge_hist_witch_stream = false;
+    const bool is_use_hist_downloading = true;
+
     /* получаем в отдельном потоке тики котировок и исторические данные брокера */
     open_bo_api::IntradeBar::Api intrade_bar_api(
                     settings.intrade_bar_number_bars,
@@ -554,7 +559,10 @@ int main(int argc, char **argv) {
             open_bo_api::News::async_update(timestamp, settings.news_sert_file);
         }
     },
-    false,
+    is_wait_formation_new_bar,
+    is_open_equal_close,
+    is_merge_hist_witch_stream,
+    is_use_hist_downloading,
     settings.intrade_bar_sert_file,
     settings.intrade_bar_cookie_file,
     settings.intrade_bar_bets_log_file,

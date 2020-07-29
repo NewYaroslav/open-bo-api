@@ -100,6 +100,11 @@ int main(int argc, char **argv) {
     open_bo_api::News::async_update(xtime::get_timestamp(), settings.news_sert_file);
     open_bo_api::Logger::log(settings.get_work_log_file_name(), std::string("start"));
 
+    const bool is_wait_formation_new_bar = false;
+    const bool is_open_equal_close = true;
+    const bool is_merge_hist_witch_stream = false;
+    const bool is_use_hist_downloading = true;
+
     /* получаем в отдельном потоке тики котировок и исторические данные брокера */
     open_bo_api::IntradeBar::Api intrade_bar_api(
                     settings.intrade_bar_number_bars,
@@ -338,14 +343,15 @@ int main(int argc, char **argv) {
         }
 
     },
-    false,
+    is_wait_formation_new_bar,
+    is_open_equal_close,
+    is_merge_hist_witch_stream,
+    is_use_hist_downloading,
     settings.intrade_bar_sert_file,
     settings.intrade_bar_cookie_file,
     settings.intrade_bar_bets_log_file,
     settings.intrade_bar_work_log_file,
-    settings.intrade_bar_websocket_log_file,
-    settings.is_intrade_bar_open_equal_close,
-    settings.is_intrade_bar_merge_hist_witch_stream);
+    settings.intrade_bar_websocket_log_file);
 
     /* подключаемся к брокеру, чтобы можно было совершать сделки */
     int err_connect = intrade_bar_api.connect(

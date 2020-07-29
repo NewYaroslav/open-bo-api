@@ -266,12 +266,10 @@ namespace open_bo_api {
             VirtualAccounts* app = static_cast<VirtualAccounts*>(userdata);
             if(app) app->va_callback(argc, argv, key_name);
 #           if(0) // нужно только для отладки
-            if(0) {
-                for(int i = 0; i< argc; i++) {
-                    printf("%s = %s\n", key_name[i], argv[i] ? argv[i] : "NULL");
-                }
-                printf("\n");
-            }
+			for(int i = 0; i< argc; i++) {
+				printf("%s = %s\n", key_name[i], argv[i] ? argv[i] : "NULL");
+			}
+			printf("\n");
 #           endif
             return 0;
         }

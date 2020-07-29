@@ -98,6 +98,11 @@ int main(int argc, char **argv) {
     open_bo_api::MtBridge MetaTrader(settings.mt_bridge_port);
     MetaTrader.wait();
 
+    const bool is_wait_formation_new_bar = false;
+    const bool is_open_equal_close = true;
+    const bool is_merge_hist_witch_stream = false;
+    const bool is_use_hist_downloading = true;
+
     /* получаем в отдельном потоке тики котировок и исторические данные брокера */
     open_bo_api::IntradeBar::Api intrade_bar_api(
                     settings.intrade_bar_number_bars,
@@ -353,7 +358,10 @@ int main(int argc, char **argv) {
             intrade_bar_api.update_balance();
         }
     },
-    false,
+    is_wait_formation_new_bar,
+    is_open_equal_close,
+    is_merge_hist_witch_stream,
+    is_use_hist_downloading,
     settings.intrade_bar_sert_file,
     settings.intrade_bar_cookie_file,
     settings.intrade_bar_bets_log_file,

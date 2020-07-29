@@ -100,6 +100,12 @@ int main(int argc, char **argv) {
     BB_TYPE iBB2022(20,2.2);
     BB_TYPE iBB5019(50,1.9);
 
+
+    const bool is_wait_formation_new_bar = false;
+    const bool is_open_equal_close = true;
+    const bool is_merge_hist_witch_stream = false;
+    const bool is_use_hist_downloading = true;
+
     /* получаем в отдельном потоке тики котировок и исторические данные брокера */
     open_bo_api::IntradeBar::Api intrade_bar_api(
                     settings.intrade_bar_number_bars,
@@ -168,7 +174,10 @@ int main(int argc, char **argv) {
             break;
         }
     },
-    false,
+    is_wait_formation_new_bar,
+    is_open_equal_close,
+    is_merge_hist_witch_stream,
+    is_use_hist_downloading,
     settings.intrade_bar_sert_file,
     settings.intrade_bar_cookie_file,
     settings.intrade_bar_bets_log_file,

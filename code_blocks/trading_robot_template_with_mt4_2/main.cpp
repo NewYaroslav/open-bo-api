@@ -94,11 +94,19 @@ int main(int argc, char **argv) {
     /* инициализируем список новостей */
     open_bo_api::News::async_update(xtime::get_timestamp(), settings.news_sert_file);
 
+    const bool is_wait_formation_new_bar = false;
+    const bool is_open_equal_close = true;
+    const bool is_merge_hist_witch_stream = false;
+    const bool is_use_hist_downloading = true;
+
     /* API для работы с брокером intrade.bar */
     open_bo_api::IntradeBar::Api intrade_bar_api(
             settings.intrade_bar_number_bars,
             nullptr,
-            false,
+            is_wait_formation_new_bar,
+            is_open_equal_close,
+            is_merge_hist_witch_stream,
+            is_use_hist_downloading,
             settings.intrade_bar_sert_file,
             settings.intrade_bar_cookie_file,
             settings.intrade_bar_bets_log_file,
