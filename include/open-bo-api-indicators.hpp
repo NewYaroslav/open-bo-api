@@ -165,7 +165,7 @@ namespace open_bo_api {
             for(uint32_t parameter = 0;
                 parameter < parameters.size();
                 ++parameter) {
-                int err = xtechnical_common::NO_INIT;
+                int err = xtechnical::common::NO_INIT;
                 switch(type) {
                 case TypePriceIndicator::OPEN:
                     if(it->second.open != 0) err = indicators[symbols[symbol]][parameters[parameter]].update(it->second.open);
@@ -219,7 +219,7 @@ namespace open_bo_api {
             for(uint32_t parameter = 0;
                 parameter < parameters.size();
                 ++parameter) {
-                int err = xtechnical_common::NO_INIT;
+                int err = xtechnical::common::NO_INIT;
                 switch(type) {
                 case TypePriceIndicator::OPEN:
                     if(it->second.open != 0) err = indicators[symbols[symbol]][parameters[parameter]].update(it->second.open, output[symbols[symbol]][parameters[parameter]]);
@@ -242,7 +242,7 @@ namespace open_bo_api {
                     else indicators[symbols[symbol]][parameters[parameter]].clear();
                     break;
                 }
-                if(err != xtechnical_common::OK) {
+                if(err != xtechnical::common::OK) {
                     output[symbols[symbol]][parameters[parameter]] = std::numeric_limits<double>::quiet_NaN();
                 }
             }
@@ -282,7 +282,7 @@ namespace open_bo_api {
                 const xtime::timestamp_t start_time = xtime::get_first_timestamp_day(it->second.timestamp) - (offset_parameters_m1[parameter] * xtime::SECONDS_IN_MINUTE);
                 const xtime::timestamp_t candle_time = xtime::get_first_timestamp_minute(it->second.timestamp);
 
-                int err = xtechnical_common::NO_INIT;
+                int err = xtechnical::common::NO_INIT;
                 switch(type) {
                 case TypePriceIndicator::OPEN:
                     if(it->second.open != 0 && candle_time >= start_time) err = indicators[symbols[symbol]][parameters[parameter]].update(it->second.open, output[symbols[symbol]][parameters[parameter]]);
@@ -305,7 +305,7 @@ namespace open_bo_api {
                     else indicators[symbols[symbol]][parameters[parameter]].clear();
                     break;
                 }
-                if(err != xtechnical_common::OK) {
+                if(err != xtechnical::common::OK) {
                     output[symbols[symbol]][parameters[parameter]] = std::numeric_limits<double>::quiet_NaN();
                 }
             }
@@ -337,7 +337,7 @@ namespace open_bo_api {
             for(uint32_t parameter = 0;
                 parameter < parameters.size();
                 ++parameter) {
-                int err = xtechnical_common::NO_INIT;
+                int err = xtechnical::common::NO_INIT;
                 switch(type) {
                 case TypePriceIndicator::OPEN:
                     if(it->second.open != 0) err = indicators[symbols[symbol]][parameters[parameter]].test(it->second.open, output[symbols[symbol]][parameters[parameter]]);
@@ -355,7 +355,7 @@ namespace open_bo_api {
                     if(it->second.volume != 0) err = indicators[symbols[symbol]][parameters[parameter]].test(it->second.volume, output[symbols[symbol]][parameters[parameter]]);
                     break;
                 }
-                if(err != xtechnical_common::OK) {
+                if(err != xtechnical::common::OK) {
                     output[symbols[symbol]][parameters[parameter]] = std::numeric_limits<double>::quiet_NaN();
                 }
             }
@@ -490,7 +490,7 @@ namespace open_bo_api {
                 for(uint32_t parameter_2 = 0;
                     parameter_2 < parameters_2.size();
                     ++parameter_2) {
-                    int err = xtechnical_common::NO_INIT;
+                    int err = xtechnical::common::NO_INIT;
                     switch(type) {
                     case TypePriceIndicator::OPEN:
                         if(it->second.open != 0) err = indicators[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]].update(it->second.open,
@@ -528,7 +528,7 @@ namespace open_bo_api {
                         else indicators[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]].clear();
                         break;
                     }
-                    if(err != xtechnical_common::OK) {
+                    if(err != xtechnical::common::OK) {
                         output_1[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]] = std::numeric_limits<double>::quiet_NaN();
                         output_2[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]] = std::numeric_limits<double>::quiet_NaN();
                         output_3[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]] = std::numeric_limits<double>::quiet_NaN();
@@ -574,7 +574,7 @@ namespace open_bo_api {
                 for(uint32_t parameter_2 = 0;
                     parameter_2 < parameters_2.size();
                     ++parameter_2) {
-                    int err = xtechnical_common::NO_INIT;
+                    int err = xtechnical::common::NO_INIT;
                     switch(type) {
                     case TypePriceIndicator::OPEN:
                         if(it->second.open != 0) err = indicators[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]].test(it->second.open,
@@ -607,7 +607,7 @@ namespace open_bo_api {
                             output_3[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]]);
                         break;
                     }
-                    if(err != xtechnical_common::OK) {
+                    if(err != xtechnical::common::OK) {
                         output_1[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]] = std::numeric_limits<double>::quiet_NaN();
                         output_2[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]] = std::numeric_limits<double>::quiet_NaN();
                         output_3[symbols[symbol]][parameters_1[parameter_1]][parameters_2[parameter_2]] = std::numeric_limits<double>::quiet_NaN();
